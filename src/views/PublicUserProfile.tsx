@@ -368,6 +368,7 @@ export default function PublicUserProfile({ userId, currentUser, showToast, show
                     />
                     {recaptchaSiteKey && (
                       <ReCaptcha
+                        key={recaptchaSiteKey}
                         siteKey={recaptchaSiteKey}
                         onChange={setCaptchaToken}
                       />

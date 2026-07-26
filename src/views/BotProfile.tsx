@@ -266,6 +266,7 @@ export default function BotProfile({
           <div className="space-y-3">
             {recaptchaSiteKey && !voteCooldownText && (
               <ReCaptcha
+                key={recaptchaSiteKey}
                 siteKey={recaptchaSiteKey}
                 onChange={setCaptchaToken}
               />
