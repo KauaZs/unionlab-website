@@ -124,8 +124,8 @@ export default function BotDetailClient({ params }: { params: Promise<{ id: stri
       showCelebration(
         "Voto Computado! 🔥",
         `Seu voto no bot ${botDetail.username} foi registrado com sucesso!`,
-        `+${data.coins} Unicoins`,
-        data.streakMessage
+        `+${data.coinsEarned ?? data.coins ?? 0} Unicoins`,
+        data.streakInfo?.message ?? data.streakMessage
       );
 
       if (data.cooldownExpiresAt) {
