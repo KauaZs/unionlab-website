@@ -119,7 +119,7 @@ export default function Home({ bots, search, onSearchChange, loadingBots, active
             <div className="space-y-1">
               <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider flex items-center justify-center gap-1">
                 <Bot className="w-3.5 h-3.5 text-zinc-400 hidden sm:inline" />
-                Robôs
+                Bots
               </span>
               <span className="block text-sm font-black text-white">{stats.totalBots}</span>
             </div>
