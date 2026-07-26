@@ -82,6 +82,11 @@ export default function Home({ bots, search, onSearchChange, loadingBots, active
     return b.id.localeCompare(a.id);
   });
 
+  const globalTopBot = safeBots.length > 0
+    ? [...safeBots].sort((a, b) => b.votes - a.votes)[0]
+    : null;
+  const topBotId = globalTopBot && globalTopBot.votes > 0 ? globalTopBot.id : null;
+
   return (
     <div className="space-y-12">
       {/* Hero Section */}
@@ -257,6 +262,7 @@ export default function Home({ bots, search, onSearchChange, loadingBots, active
                 rating={bot.rating}
                 feedbackCount={bot.feedbackCount}
                 onClick={() => onBotClick(bot.id)}
+                isTop1={bot.id === topBotId}
               />
             ))
           )}

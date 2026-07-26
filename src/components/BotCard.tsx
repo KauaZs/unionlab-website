@@ -15,9 +15,10 @@ interface BotCardProps {
   rating?: number;
   feedbackCount?: number;
   onClick: () => void;
+  isTop1?: boolean;
 }
 
-export default function BotCard({ id, username, avatar, prefix, language, description, votes, rating, feedbackCount, onClick }: BotCardProps) {
+export default function BotCard({ id, username, avatar, prefix, language, description, votes, rating, feedbackCount, onClick, isTop1 }: BotCardProps) {
   const getAvatarUrl = (botId: string, avatarHash: string | null) => {
     if (!avatarHash) return "https://cdn.discordapp.com/embed/avatars/0.png";
     return `https://cdn.discordapp.com/avatars/${botId}/${avatarHash}.png`;
@@ -26,12 +27,23 @@ export default function BotCard({ id, username, avatar, prefix, language, descri
   return (
     <Card 
       onClick={onClick}
-      className="cursor-pointer group flex flex-col justify-between overflow-hidden"
+      className={`cursor-pointer group flex flex-col justify-between overflow-hidden relative transition-all duration-300 ${
+        isTop1 
+          ? "border-amber-500/30 bg-gradient-to-b from-amber-500/5 to-slate-950/20 hover:border-amber-500/50 shadow-xl shadow-amber-500/[0.02]" 
+          : "hover:border-slate-800"
+      }`}
     >
+      {isTop1 && (
+        <div className="absolute top-3 right-3 flex items-center gap-1 bg-amber-500 text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-lg shadow-amber-500/20 z-10 tracking-wider">
+          <span>🏆 Top #1</span>
+        </div>
+      )}
       <div>
         <CardHeader className="flex flex-row items-center gap-4 p-6">
           <img 
-            className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-900 object-cover shadow-lg group-hover:scale-105 transition-transform duration-300" 
+            className={`w-16 h-16 rounded-2xl border object-cover shadow-lg group-hover:scale-105 transition-transform duration-300 ${
+              isTop1 ? "border-amber-500/30 bg-amber-500/5" : "border-slate-900 bg-slate-900"
+            }`} 
             src={getAvatarUrl(id, avatar)} 
             alt={username} 
           />
