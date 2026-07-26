@@ -25,6 +25,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         description: user.aboutme || `Veja o perfil de ${user.username} no Union Lab.`,
         images: [avatarUrl],
       },
+      twitter: {
+        card: "summary",
+        title: `${user.username} - Perfil no Union Lab`,
+        description: user.aboutme || `Veja o perfil de ${user.username} no Union Lab.`,
+        images: [avatarUrl],
+      },
     };
   } catch (e) {
     return {
