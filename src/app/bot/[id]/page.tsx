@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         title: `${bot.username} - Bot no Union Lab`,
         description: bot.description || `Veja detalhes, avaliações e vote no bot ${bot.username} no Union Lab!`,
         images: [avatarUrl],
-      },
+      },  
     };
   } catch (e) {
     return {

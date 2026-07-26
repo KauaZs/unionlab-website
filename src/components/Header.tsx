@@ -307,7 +307,7 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
         {/* Mobile Menu Button */}
         <button
           onClick={onOpenMobileMenu}
-          className="lg:hidden p-2.5 rounded-xl border border-slate-900 bg-slate-900/60 hover:bg-slate-900/90 text-slate-400 hover:text-white transition-all duration-200"
+          className="lg:hidden p-2.5 rounded-xl border border-slate-900 bg-slate-900/60 hover:bg-slate-900/90 text-slate-400 hover:text-white transition-all duration-200 active:scale-95 touch-manipulation"
         >
           <Menu className="w-5 h-5" />
         </button>

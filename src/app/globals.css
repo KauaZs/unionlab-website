@@ -832,6 +832,11 @@ main {
   background-color: #050507 !important; /* Solid Obsidian Black */
   border-left: 1px solid #1e293b !important; /* border-slate-800 */
   box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8) !important;
+  
+  /* iOS WebKit hardware acceleration & optimization */
+  will-change: transform !important;
+  transform: translate3d(0, 0, 0) !important;
+  -webkit-transform: translate3d(0, 0, 0) !important;
 }
 
 .mobile-drawer-backdrop {
@@ -839,6 +844,9 @@ main {
   inset: 0 !important;
   z-index: 9998 !important;
   background-color: rgba(3, 7, 18, 0.6) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  
+  /* Lighter blur to avoid heavy CPU recalculation on iOS */
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  will-change: opacity !important;
 }
