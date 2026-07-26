@@ -363,6 +363,7 @@ export default function PublicUserProfile({ userId, currentUser, showToast, show
                       value={repMessage}
                       onChange={(e) => setRepMessage(e.target.value)}
                       maxLength={50}
+                      minLength={6}
                       disabled={sendingRep}
                       required
                     />
@@ -370,6 +371,7 @@ export default function PublicUserProfile({ userId, currentUser, showToast, show
                       <ReCaptcha
                         key={recaptchaSiteKey}
                         siteKey={recaptchaSiteKey}
+                        size="compact"
                         onChange={setCaptchaToken}
                       />
                     )}
@@ -377,7 +379,7 @@ export default function PublicUserProfile({ userId, currentUser, showToast, show
                       type="submit" 
                       variant="premium" 
                       className="w-full h-9 rounded-xl text-xs font-bold"
-                      disabled={sendingRep || repMessage.length < 6 || (!!recaptchaSiteKey && !captchaToken)}
+                      disabled={sendingRep || (!!recaptchaSiteKey && !captchaToken)}
                     >
                       {sendingRep ? "Enviando..." : "Dar Reputação"}
                     </Button>

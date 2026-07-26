@@ -212,7 +212,7 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
               </button>
 
               {isOpen && (
-                <div className="absolute right-0 mt-2.5 w-[calc(100vw-3rem)] sm:w-80 max-h-96 overflow-y-auto bg-slate-950 border border-slate-900 rounded-2xl p-4 shadow-2xl space-y-4 z-50 text-left">
+                <div className="fixed top-24 left-6 right-6 sm:absolute sm:top-auto sm:left-auto sm:right-0 sm:mt-2.5 sm:w-80 max-h-96 overflow-y-auto bg-slate-950 border border-slate-900 rounded-2xl p-4 shadow-2xl space-y-4 z-50 text-left">
                   <div className="flex items-center justify-between border-b border-slate-900 pb-2">
                     <span className="text-xs font-black text-white">Notificações</span>
                     {notifications.length > 0 && (

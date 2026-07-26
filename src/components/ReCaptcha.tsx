@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 interface ReCaptchaProps {
   siteKey: string;
   onChange: (token: string | null) => void;
+  size?: "normal" | "compact";
 }
 
 declare global {
@@ -13,7 +14,7 @@ declare global {
   }
 }
 
-export default function ReCaptcha({ siteKey, onChange }: ReCaptchaProps) {
+export default function ReCaptcha({ siteKey, onChange, size = "normal" }: ReCaptchaProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,6 +41,7 @@ export default function ReCaptcha({ siteKey, onChange }: ReCaptchaProps) {
             try {
               window.grecaptcha.render(containerRef.current, {
                 sitekey: siteKey,
+                size: size,
                 callback: (token: string) => onChange(token),
                 "expired-callback": () => onChange(null),
               });
@@ -59,7 +61,7 @@ export default function ReCaptcha({ siteKey, onChange }: ReCaptchaProps) {
         }
       }
     }
-  }, [siteKey, onChange]);
+  }, [siteKey, onChange, size]);
 
   return (
     <div className="flex justify-center my-3 min-h-[78px] bg-slate-950/20 p-2 rounded-xl border border-slate-900/50">
