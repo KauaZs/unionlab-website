@@ -53,6 +53,12 @@ interface BotProfileProps {
   recaptchaSiteKey?: string | null;
 }
 
+const parseLocalDate = (dateStr: string) => {
+  if (!dateStr) return new Date();
+  const cleanStr = dateStr.endsWith("Z") ? dateStr.slice(0, -1) : dateStr;
+  return new Date(cleanStr);
+};
+
 export default function BotProfile({
   botDetail,
   feedbacks,
@@ -247,7 +253,7 @@ export default function BotProfile({
                       </p>
                       <div className="flex items-center gap-1.5 text-[10px] text-slate-600 font-semibold">
                         <Calendar className="w-3 h-3" />
-                        <span>{new Date(fb.date).toLocaleDateString("pt-BR")}</span>
+                        <span>{parseLocalDate(fb.date).toLocaleDateString("pt-BR")}</span>
                       </div>
                     </div>
                   </CardContent>

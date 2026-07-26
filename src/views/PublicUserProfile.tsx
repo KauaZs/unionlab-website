@@ -70,6 +70,12 @@ interface PublicUserProfileProps {
   recaptchaSiteKey?: string | null;
 }
 
+const parseLocalDate = (dateStr: string) => {
+  if (!dateStr) return new Date();
+  const cleanStr = dateStr.endsWith("Z") ? dateStr.slice(0, -1) : dateStr;
+  return new Date(cleanStr);
+};
+
 export default function PublicUserProfile({ userId, currentUser, showToast, showCelebration, recaptchaSiteKey }: PublicUserProfileProps) {
   const router = useRouter();
   const [data, setData] = useState<UserProfileData | null>(null);
@@ -477,7 +483,7 @@ export default function PublicUserProfile({ userId, currentUser, showToast, show
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-bold text-white">{r.senderName}</span>
                           <span className="text-[9px] text-slate-500 font-medium">
-                            {new Date(r.createdAt).toLocaleDateString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                            {parseLocalDate(r.createdAt).toLocaleDateString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
                         <p className="text-xs text-slate-300 italic font-medium">
