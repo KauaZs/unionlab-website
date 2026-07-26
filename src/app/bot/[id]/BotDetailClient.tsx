@@ -72,6 +72,13 @@ export default function BotDetailClient({ params }: { params: Promise<{ id: stri
     fetchBot();
   }, [botId]);
 
+  // Sync vote cooldown from logged-in user details on load
+  useEffect(() => {
+    if (user?.cooldowns?.voteBot && user.cooldowns.voteBot > Date.now()) {
+      setCooldownExpires(user.cooldowns.voteBot);
+    }
+  }, [user]);
+
   // Cooldown Countdown Timer
   useEffect(() => {
     if (!cooldownExpires) {
