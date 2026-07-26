@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Trophy, Flame, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -36,6 +37,7 @@ interface RacePageProps {
 }
 
 export default function RacePage({ raceId, user, onUpdateUser, showToast }: RacePageProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [race, setRace] = useState<RaceData | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -210,7 +212,7 @@ export default function RacePage({ raceId, user, onUpdateUser, showToast }: Race
         <AlertTriangle className="w-12 h-12 text-red-500 mx-auto" />
         <h2 className="text-xl font-bold text-white">Corrida Não Encontrada</h2>
         <p className="text-slate-400 text-xs">Esta sala de corrida expirou ou o ID fornecido é inválido.</p>
-        <Button onClick={() => (window.location.hash = "#/")} variant="outline" className="w-full">
+        <Button onClick={() => router.push("/")} variant="outline" className="w-full">
           Voltar para Home
         </Button>
       </div>
@@ -239,7 +241,7 @@ export default function RacePage({ raceId, user, onUpdateUser, showToast }: Race
         >
           Entrar com o Discord
         </Button>
-        <Button onClick={() => (window.location.hash = "#/")} variant="outline" className="w-full h-10 font-bold text-xs">
+        <Button onClick={() => router.push("/")} variant="outline" className="w-full h-10 font-bold text-xs">
           Voltar para a Home
         </Button>
       </div>
@@ -498,7 +500,7 @@ export default function RacePage({ raceId, user, onUpdateUser, showToast }: Race
             </div>
 
             <div className="pt-4 max-w-xs mx-auto">
-              <Button onClick={() => (window.location.hash = "#/")} variant="outline" className="w-full text-xs font-bold h-9">
+              <Button onClick={() => router.push("/")} variant="outline" className="w-full text-xs font-bold h-9">
                 Voltar para Home
               </Button>
             </div>
@@ -520,7 +522,7 @@ export default function RacePage({ raceId, user, onUpdateUser, showToast }: Race
                 : "Esta corrida foi recusada pelo oponente ou cancelada por um dos participantes. Nenhuma Unicoin foi debitada."}
             </p>
             <div className="pt-4 max-w-xs mx-auto">
-              <Button onClick={() => (window.location.hash = "#/")} variant="outline" className="w-full text-xs font-bold h-9">
+              <Button onClick={() => router.push("/")} variant="outline" className="w-full text-xs font-bold h-9">
                 Voltar para Home
               </Button>
             </div>

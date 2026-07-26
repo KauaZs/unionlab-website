@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Coins, Flame, Award, AlertCircle, Bot, Heart, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
@@ -70,6 +71,7 @@ interface PublicUserProfileProps {
 }
 
 export default function PublicUserProfile({ userId, currentUser, showToast, showCelebration, recaptchaSiteKey }: PublicUserProfileProps) {
+  const router = useRouter();
   const [data, setData] = useState<UserProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -201,7 +203,7 @@ export default function PublicUserProfile({ userId, currentUser, showToast, show
         <h2 className="text-xl font-bold text-white">Oops!</h2>
         <p className="text-slate-400 text-sm">{error || "Não conseguimos carregar este perfil."}</p>
         <button 
-          onClick={() => (window.location.hash = "#/")}
+          onClick={() => router.push("/")}
           className="text-xs font-bold text-zinc-400 hover:underline"
         >
           Voltar para a página inicial
@@ -417,7 +419,7 @@ export default function PublicUserProfile({ userId, currentUser, showToast, show
                   {data.bots.map((bot) => (
                     <div 
                       key={bot.id}
-                      onClick={() => (window.location.hash = `#/bot/${bot.id}`)}
+                      onClick={() => router.push(`/bot/${bot.id}`)}
                       className="flex items-center gap-3.5 p-4 rounded-xl border border-slate-900 bg-slate-950/20 hover:border-slate-800 hover:bg-slate-900/10 cursor-pointer transition-all duration-200"
                     >
                       <img 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Coins, LogOut, Shield, Flame, Award, Bot, Check, Edit2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
@@ -57,6 +58,7 @@ interface UserProfileProps {
 }
 
 export default function UserProfile({ user, onLogout, showToast }: UserProfileProps) {
+  const router = useRouter();
   const [data, setData] = useState<FullUserData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -350,7 +352,7 @@ export default function UserProfile({ user, onLogout, showToast }: UserProfilePr
                   {data.bots.map((bot) => (
                     <div 
                       key={bot.id}
-                      onClick={() => (window.location.hash = `#/bot/${bot.id}`)}
+                      onClick={() => router.push(`/bot/${bot.id}`)}
                       className="flex items-center gap-3.5 p-4 rounded-xl border border-slate-900 bg-slate-950/20 hover:border-slate-800 hover:bg-slate-900/10 cursor-pointer transition-all duration-200"
                     >
                       <img 

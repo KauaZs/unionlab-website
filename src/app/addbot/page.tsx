@@ -1,10 +1,15 @@
-"use client";
+import { Metadata } from "next";
+import AddBotClient from "./AddBotClient";
 
-import AddBotPage from "@/views/AddBotPage";
-import { useApp } from "@/context/AppContext";
+export const metadata: Metadata = {
+  title: "Adicionar Novo Bot - Union Lab",
+  description: "Cadastre seu bot no Union Bot List. Ele será submetido à equipe de análise antes de aparecer na página principal.",
+  openGraph: {
+    title: "Adicionar Novo Bot - Union Lab",
+    description: "Cadastre seu bot no Union Bot List. Ele será submetido à equipe de análise antes de aparecer na página principal.",
+  },
+};
 
 export default function AddBotRoute() {
-  const { user, refreshUser, showToast } = useApp();
-
-  return <AddBotPage user={user} onUpdateUser={refreshUser} showToast={showToast} />;
+  return <AddBotClient />;
 }

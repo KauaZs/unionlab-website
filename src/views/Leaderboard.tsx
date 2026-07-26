@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Trophy, Bot, Flame, Coins, ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 
@@ -20,6 +21,7 @@ interface LeaderboardData {
 }
 
 export default function Leaderboard() {
+  const router = useRouter();
   const [data, setData] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -111,7 +113,7 @@ export default function Leaderboard() {
                     />
                     <span 
                       className="font-bold text-sm text-slate-200 hover:text-zinc-400 cursor-pointer transition-colors duration-150"
-                      onClick={() => (window.location.hash = `#/bot/${bot.id}`)}
+                      onClick={() => router.push(`/bot/${bot.id}`)}
                     >
                       {bot.username}
                     </span>
@@ -162,7 +164,7 @@ export default function Leaderboard() {
                     />
                     <span 
                       className="font-bold text-sm text-slate-200 hover:text-zinc-400 hover:underline cursor-pointer transition-all duration-150"
-                      onClick={() => (window.location.hash = `#/user/${user.id}`)}
+                      onClick={() => router.push(`/user/${user.id}`)}
                     >
                       {user.username}
                     </span>

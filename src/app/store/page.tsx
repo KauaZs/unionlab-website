@@ -1,10 +1,15 @@
-"use client";
+import { Metadata } from "next";
+import StoreClient from "./StoreClient";
 
-import BannerStore from "@/views/BannerStore";
-import { useApp } from "@/context/AppContext";
+export const metadata: Metadata = {
+  title: "Loja de Unicoins - Union Lab",
+  description: "Use suas Unicoins para comprar destaques no outdoor, cores personalizadas para seu perfil e muito mais!",
+  openGraph: {
+    title: "Loja de Unicoins - Union Lab",
+    description: "Use suas Unicoins para comprar destaques no outdoor, cores personalizadas para seu perfil e muito mais!",
+  },
+};
 
 export default function StoreRoute() {
-  const { user, refreshUser } = useApp();
-
-  return <BannerStore user={user} onUpdateUser={refreshUser} />;
+  return <StoreClient />;
 }

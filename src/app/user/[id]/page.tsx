@@ -1,20 +1,39 @@
-"use client";
+import { Metadata } from "next";
+import UserProfileClient from "./UserProfileClient";
 
-import { use } from "react";
-import PublicUserProfile from "@/views/PublicUserProfile";
-import { useApp } from "@/context/AppContext";
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
 
-export default function UserProfileRoute({ params }: { params: Promise<{ id: string }> }) {
-  const { id: userId } = use(params);
-  const { user, showToast, showCelebration, recaptchaSiteKey } = useApp();
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:80").replace(/\/$/, "");
+  try {
+    const res = await fetch(`${apiUrl}/api/public/users/${id}`);
+    if (!res.ok) throw new Error();
+    const user = await res.json();
 
-  return (
-    <PublicUserProfile
-      userId={userId}
-      currentUser={user}
-      showToast={showToast}
-      showCelebration={showCelebration}
-      recaptchaSiteKey={recaptchaSiteKey}
-    />
-  );
+    const avatarUrl = user.avatar
+      ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+      : "https://cdn.discordapp.com/embed/avatars/0.png";
+
+    return {
+      title: `${user.username} - Perfil no Union Lab`,
+      description: user.aboutme || `Veja o perfil de ${user.username} no Union Lab.`,
+      openGraph: {
+        title: `${user.username} - Perfil no Union Lab`,
+        description: user.aboutme || `Veja o perfil de ${user.username} no Union Lab.`,
+        images: [avatarUrl],
+      },
+    };
+  } catch (e) {
+    return {
+      title: "Perfil - Union Lab",
+      description: "Veja o perfil de desenvolvedores no Union Lab.",
+    };
+  }
+}
+
+export default async function UserProfileRoute({ params }: PageProps) {
+  return <UserProfileClient params={params} />;
 }

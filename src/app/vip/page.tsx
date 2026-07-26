@@ -1,10 +1,15 @@
-"use client";
+import { Metadata } from "next";
+import VipClient from "./VipClient";
 
-import VipPage from "@/views/VipPage";
-import { useApp } from "@/context/AppContext";
+export const metadata: Metadata = {
+  title: "Assinatura VIP - Union Lab",
+  description: "Seja um apoiador VIP do Union Lab! Ganhe multiplicador de votos, medalhas exclusivas e destaque na listagem de bots.",
+  openGraph: {
+    title: "Assinatura VIP - Union Lab",
+    description: "Seja um apoiador VIP do Union Lab! Ganhe multiplicador de votos, medalhas exclusivas e destaque na listagem de bots.",
+  },
+};
 
 export default function VipRoute() {
-  const { user, refreshUser, showToast } = useApp();
-
-  return <VipPage user={user} onUpdateUser={refreshUser} showToast={showToast} />;
+  return <VipClient />;
 }

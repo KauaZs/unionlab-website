@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Flame, ShieldAlert, ExternalLink, Calendar, Star, Info, User, Trash2 } from "lucide-react";
 import Stars from "../components/Stars";
 import ReCaptcha from "../components/ReCaptcha";
@@ -69,6 +70,7 @@ export default function BotProfile({
   onDeleteFeedback,
   recaptchaSiteKey,
 }: BotProfileProps) {
+  const router = useRouter();
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const existingFeedback = feedbacks.find(f => f.userId === user?.id);
 
@@ -341,7 +343,7 @@ export default function BotProfile({
           </CardHeader>
           <CardContent 
             className="p-6 pt-0 flex items-center gap-3 cursor-pointer hover:opacity-90 select-none group/owner"
-            onClick={() => (window.location.hash = `#/user/${botDetail.ownerId}`)}
+            onClick={() => router.push(`/user/${botDetail.ownerId}`)}
           >
             <img 
               className="w-11 h-11 rounded-full border border-slate-900 shrink-0 object-cover group-hover/owner:border-zinc-500 transition-colors" 
