@@ -189,7 +189,7 @@ export default function Home({ bots, search, onSearchChange, loadingBots, active
               className="flex items-center justify-center gap-1.5 px-4 h-9 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all duration-150 shadow-md w-1/2 md:w-40"
             >
               <ExternalLink className="w-3.5 h-3.5" />
-              Convidar Bot
+              Adicionar Bot
             </a>
             <button
               onClick={() => onBotClick(activeOutdoor.botId)}
