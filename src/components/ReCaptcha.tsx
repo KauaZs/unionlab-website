@@ -16,8 +16,14 @@ declare global {
 
 export default function ReCaptcha({ siteKey, onChange, size = "normal" }: ReCaptchaProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const isDev = process.env.NODE_ENV === "development";
 
   useEffect(() => {
+    if (isDev) {
+      onChange("mock-dev-token");
+      return;
+    }
+
     // Add Google Recaptcha script to head if not present
     if (!window.grecaptcha) {
       const script = document.createElement("script");
@@ -61,7 +67,16 @@ export default function ReCaptcha({ siteKey, onChange, size = "normal" }: ReCapt
         }
       }
     }
-  }, [siteKey, onChange, size]);
+  }, [siteKey, onChange, size, isDev]);
+
+  if (isDev) {
+    return (
+      <div className="flex flex-col items-center justify-center my-3 py-3 px-4 rounded-xl border border-dashed border-slate-800 bg-slate-950/20 text-center select-none">
+        <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">reCAPTCHA Desativado (Modo Dev)</span>
+        <span className="text-[9px] text-slate-600 font-semibold">Bypass automático ativo para testes locais</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center my-3 min-h-[78px] bg-slate-950/20 p-2 rounded-xl border border-slate-900/50">

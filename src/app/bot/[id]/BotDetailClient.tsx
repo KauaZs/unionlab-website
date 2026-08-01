@@ -4,6 +4,20 @@ import { useState, useEffect, use } from "react";
 import BotProfile from "@/views/BotProfile";
 import { useApp } from "@/context/AppContext";
 
+interface BotCommand {
+  name: string;
+  description: string;
+  usage?: string;
+  type: "slash" | "prefix";
+}
+
+interface BotChangelog {
+  version: string;
+  title: string;
+  content: string;
+  date: string;
+}
+
 interface Bot {
   id: string;
   username: string;
@@ -17,6 +31,9 @@ interface Bot {
   ownerId?: string;
   ownerName?: string;
   ownerAvatar?: string | null;
+  commands?: BotCommand[];
+  changelogs?: BotChangelog[];
+  tags?: string[];
 }
 
 interface Feedback {
@@ -234,6 +251,42 @@ export default function BotDetailClient({ params }: { params: Promise<{ id: stri
     }
   };
 
+  const handleSaveBotDetails = async (updatedData: {
+    prefix: string;
+    language: string;
+    description: string;
+    commands: BotCommand[];
+    changelogs: BotChangelog[];
+    tags: string[];
+  }) => {
+    if (!authToken || !botDetail) return false;
+
+    try {
+      const res = await fetch(`/api/public/bots/${botDetail.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify(updatedData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(data.error || "Erro ao salvar alterações do bot.", "error");
+        return false;
+      }
+
+      showToast("Informações do bot salvas com sucesso!", "success");
+      fetchBot();
+      return true;
+    } catch (err) {
+      console.error(err);
+      showToast("Erro ao conectar com o servidor.", "error");
+      return false;
+    }
+  };
+
   if (loadingDetail || !botDetail) {
     return (
       <div className="flex items-center justify-center min-h-[300px]">
@@ -259,6 +312,7 @@ export default function BotDetailClient({ params }: { params: Promise<{ id: stri
       onEditFeedback={handleEditFeedback}
       onDeleteFeedback={handleDeleteFeedback}
       recaptchaSiteKey={recaptchaSiteKey}
+      onSaveBotDetails={handleSaveBotDetails}
     />
   );
 }
