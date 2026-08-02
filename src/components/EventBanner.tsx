@@ -47,7 +47,7 @@ export default function EventBanner({ name, multiplier, eventKey, progress }: Ev
                     : "bg-blue-500/15 border-blue-500/20 text-blue-400"
                 }`}
               >
-                {isGoal ? "Meta da Comunidade Activa" : "Evento Ativo"}
+                {isGoal ? "Meta da Comunidade Ativo" : "Evento Ativo"}
               </span>
               <h4 className="font-bold text-sm text-white mt-1">
                 {isGoal 
