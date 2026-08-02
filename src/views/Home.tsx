@@ -21,8 +21,14 @@ interface Bot {
 
 interface EventData {
   active: boolean;
+  key: string;
+  type: string;
   name: string;
   multiplier: number;
+  progress?: {
+    current: number;
+    target: number;
+  } | null;
 }
 
 interface HomeProps {
@@ -142,7 +148,12 @@ export default function Home({ bots, search, onSearchChange, loadingBots, active
       </div>
 
       {activeEvent && activeEvent.active && (
-        <EventBanner name={activeEvent.name} multiplier={activeEvent.multiplier} />
+        <EventBanner 
+          name={activeEvent.name} 
+          multiplier={activeEvent.multiplier} 
+          eventKey={activeEvent.key}
+          progress={activeEvent.progress}
+        />
       )}
 
       {/* Outdoor Highlight Banner Card */}

@@ -18,8 +18,14 @@ interface Bot {
 
 interface EventData {
   active: boolean;
+  key: string;
+  type: string;
   name: string;
   multiplier: number;
+  progress?: {
+    current: number;
+    target: number;
+  } | null;
 }
 
 export default function HomePage() {
