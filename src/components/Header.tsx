@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Compass, Trophy, HelpCircle, LogIn, Coins, ShoppingBag, Crown, Megaphone, Bell, Trash2, Bot, Menu } from "lucide-react";
+import { Compass, Trophy, HelpCircle, LogIn, Coins, ShoppingBag, Crown, Megaphone, Bell, Trash2, Bot, Menu, Terminal } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface HeaderProps {
@@ -158,6 +158,17 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
         >
           <Crown className="w-4 h-4" />
           VIP
+        </button>
+        <button
+          onClick={() => onNavigate("#/codes")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+            isTabActive("codes")
+              ? "bg-white text-black shadow-md shadow-white/5"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/30"
+          }`}
+        >
+          <Terminal className="w-4 h-4" />
+          Codes
         </button>
         <button
           onClick={() => onNavigate("#/outdoor")}

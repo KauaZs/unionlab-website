@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Header from "@/components/Header";
 import CelebrationModal from "@/components/CelebrationModal";
-import { Compass, Trophy, ShoppingBag, Crown, Megaphone, Bot, HelpCircle, X, Coins } from "lucide-react";
+import { Compass, Trophy, ShoppingBag, Crown, Megaphone, Bot, HelpCircle, X, Coins, Terminal } from "lucide-react";
 
 interface User {
   id: string;
@@ -276,6 +276,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     { id: "rankings", label: "Rankings", icon: Trophy, path: "/rankings" },
                     { id: "store", label: "Loja", icon: ShoppingBag, path: "/store" },
                     { id: "vip", label: "VIP", icon: Crown, path: "/vip" },
+                    { id: "codes", label: "codes", icon: Terminal, path: "/codes" },
                     { id: "outdoor", label: "Outdoor", icon: Megaphone, path: "/outdoor" },
                     { id: "addbot", label: "Add Bot", icon: Bot, path: "/addbot" },
                     { id: "help", label: "Ajuda & FAQ", icon: HelpCircle, path: "/help" },

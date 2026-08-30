@@ -303,41 +303,46 @@ export default function BotProfile({
         {latestChangelog && (
           <div 
             onClick={() => setActiveTab("changelogs")}
-            className="flex items-center justify-between gap-4 p-3.5 rounded-xl border border-slate-900 bg-slate-950/20 hover:bg-slate-950/40 transition-colors duration-200 cursor-pointer group select-none"
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3.5 rounded-xl border border-slate-900 bg-slate-950/20 hover:bg-slate-950/40 transition-colors duration-200 cursor-pointer group select-none w-full overflow-hidden"
           >
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
               {/* Minimal version tag */}
               <span className="shrink-0 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-500">
                 {latestChangelog.version}
               </span>
               
               {/* Info text */}
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
                 <span className="text-xs font-semibold text-slate-200 truncate shrink-0">
                   {latestChangelog.title}
                 </span>
                 <span className="text-slate-700 text-xs shrink-0">&bull;</span>
                 <div 
-                  className="text-slate-400 text-xs truncate font-medium flex-1"
+                  className="text-slate-400 text-xs truncate font-medium flex-1 min-w-0"
                   dangerouslySetInnerHTML={{ __html: parseMarkdownToHtmlWidget(latestChangelog.content) }}
                 />
               </div>
             </div>
 
             {/* Date and tiny arrow */}
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[10px] text-slate-550 font-medium">
-                {parseLocalDate(latestChangelog.date).toLocaleDateString("pt-BR")}
+            <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto border-t sm:border-t-0 border-slate-900/60 pt-2 sm:pt-0">
+              <span className="text-[10px] text-slate-550 font-medium sm:hidden">
+                Publicado em:
               </span>
-              <span className="text-slate-650 group-hover:text-slate-450 group-hover:translate-x-0.5 transition-all duration-200 text-xs">
-                &rarr;
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-slate-550 font-medium">
+                  {parseLocalDate(latestChangelog.date).toLocaleDateString("pt-BR")}
+                </span>
+                <span className="text-slate-650 group-hover:text-slate-450 group-hover:translate-x-0.5 transition-all duration-200 text-xs">
+                  &rarr;
+                </span>
+              </div>
             </div>
           </div>
         )}
 
         {/* Tab Selector */}
-        <div className="flex border-b border-slate-900 gap-1 pb-px">
+        <div className="flex border-b border-slate-900 gap-1 pb-px overflow-x-auto scrollbar-none whitespace-nowrap w-full">
           {[
             { id: "feedbacks", label: `Avaliações (${feedbacks.length})`, icon: Star },
             { id: "commands", label: "Comandos", icon: Terminal },
@@ -349,7 +354,7 @@ export default function BotProfile({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all duration-200 ${
+                className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all duration-200 shrink-0 ${
                   active
                     ? "border-white text-white bg-slate-950/20"
                     : "border-transparent text-slate-500 hover:text-slate-350"
