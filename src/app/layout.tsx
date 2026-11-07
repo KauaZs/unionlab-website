@@ -29,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={`dark ${jakarta.variable} ${outfit.variable}`}>
-      <body className="min-h-screen bg-[#050507] text-white">
+      <body className="min-h-screen text-white">
         <AppProvider>{children}</AppProvider>
       </body>
     </html>

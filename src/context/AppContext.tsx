@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Header from "@/components/Header";
 import CelebrationModal from "@/components/CelebrationModal";
+import SiteBackground from "@/components/SiteBackground";
 import { Compass, Trophy, ShoppingBag, Crown, Megaphone, Bot, HelpCircle, X, Coins, Terminal, Plus } from "lucide-react";
 import { parseJson } from "@/lib/api";
 
@@ -171,8 +172,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     >
       <div className="app-container">
         {/* Background Floating Glows */}
-        <div className="bg-ambient-glow"></div>
-        <div className="bg-ambient-glow blue"></div>
+        <SiteBackground />
 
         {/* HEADER */}
         <Header

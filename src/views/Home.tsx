@@ -180,7 +180,7 @@ export default function Home({ initialBots, initialProjects, initialEvent, initi
       )}
 
       {/* Explore tabs: segmented control, active tab takes its type's color */}
-      <div className="sticky top-20 z-30 -mx-4 bg-[#050507]/80 px-4 py-3 backdrop-blur-md sm:mx-0 sm:px-0">
+      <div className="sticky top-20 z-30 -mx-4 bg-[#06060a]/75 px-4 py-3 backdrop-blur-md sm:mx-0 sm:px-0">
         <div className="flex items-stretch gap-3">
           <nav
             ref={tabsRef}

@@ -9,7 +9,8 @@
 
   color-scheme: dark;
   color: #e2e8f0;
-  background-color: #030303;
+  /* Page base color lives on <html>; <body> stays transparent so <SiteBackground /> (z-index -10) shows through. */
+  background-color: #06060a;
 
   /* Color System */
   --bg-primary: #050507; /* Obsidian Black */
@@ -48,11 +49,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: var(--bg-primary);
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.02) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(0, 242, 254, 0.02) 0%, transparent 40%);
-  background-attachment: fixed;
+  background-color: transparent;
   overflow-x: hidden;
 }
 

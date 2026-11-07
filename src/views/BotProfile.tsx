@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Flame, ShieldAlert, ExternalLink, Calendar, Star, Info, User, Trash2, Settings, X, Plus, Terminal, History, Pencil } from "lucide-react";
+import Link from "next/link";
+import { Flame, ShieldAlert, Calendar, Star, Info, Trash2, Settings, X, Plus, Terminal, History, Pencil, Copy, Check, Code2, Sparkles, ChevronRight } from "lucide-react";
 import Stars from "../components/Stars";
 import ReCaptcha from "../components/ReCaptcha";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -11,6 +11,9 @@ import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
 import { startLogin } from "@/lib/api";
 import Markdown from "@/components/Markdown";
+import { botAvatarUrl } from "@/components/BotCard";
+import { categoriesOf, categoryForTag } from "@/lib/categories";
+import { cn } from "@/lib/utils";
 
 interface BotCommand {
   name: string;
@@ -104,7 +107,6 @@ export default function BotProfile({
   recaptchaSiteKey,
   onSaveBotDetails,
 }: BotProfileProps) {
-  const router = useRouter();
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const existingFeedback = feedbacks.find(f => f.userId === user?.id);
 
@@ -176,458 +178,421 @@ export default function BotProfile({
 
   const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${botDetail.id}&permissions=8&scope=bot%20applications.commands`;
 
+  const [copied, setCopied] = useState<string | null>(null);
+  const copy = (text: string, key: string) => {
+    navigator.clipboard
+      ?.writeText(text)
+      .then(() => {
+        setCopied(key);
+        setTimeout(() => setCopied(null), 1500);
+      })
+      .catch(() => {});
+  };
+
+  const avatar = botAvatarUrl(botDetail.id, botDetail.avatar).replace("size=128", "size=256");
+  const categories = categoriesOf(botDetail.tags);
+  const extraTags = (botDetail.tags ?? []).filter((t) => !categoryForTag(t));
+  const commandCount = botDetail.commands?.length ?? 0;
+  const changelogCount = botDetail.changelogs?.length ?? 0;
+  const hasRating = !!botDetail.rating && !!botDetail.feedbackCount;
+
+  const tabs = [
+    { id: "feedbacks" as const, label: "Avaliações", count: feedbacks.length, icon: Star },
+    { id: "commands" as const, label: "Comandos", count: commandCount, icon: Terminal },
+    { id: "changelogs" as const, label: "Atualizações", count: changelogCount, icon: History },
+  ];
+
+  const panel = "rounded-2xl border border-slate-900 bg-zinc-950/60 backdrop-blur-sm";
+  const sectionTitle = "flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-400";
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-      {/* Main Column */}
-      <div className="lg:col-span-2 space-y-8">
-        
-        {/* Profile header */}
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 pb-6 border-b border-slate-900">
-          <img 
-            className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-slate-900 border border-slate-900 object-cover shadow-2xl" 
-            src={getAvatarUrl(botDetail.id, botDetail.avatar)} 
-            alt={botDetail.username} 
-          />
-          <div className="flex flex-col items-center sm:items-start gap-3.5 text-center sm:text-left w-full">
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 w-full justify-center sm:justify-start">
-              <h2 className="text-3xl font-extrabold text-white font-sans">
-                {botDetail.username}
-              </h2>
-              {isOwner && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEditingBot(true)}
-                  className="flex items-center gap-1.5 h-8 text-xs font-bold border-slate-800 hover:bg-slate-900 mt-1 sm:mt-0"
-                >
-                  <Settings className="w-3.5 h-3.5 animate-spin-hover" />
-                  Editar Bot
-                </Button>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <Badge variant="default">
-                {botDetail.language}
-              </Badge>
-              {botDetail.tags && botDetail.tags.map((tag, idx) => (
-                <Badge 
-                  key={idx} 
-                  variant="outline" 
-                  className="text-[10px] font-semibold border-slate-900 bg-slate-950/10 text-slate-400 py-0.5 px-2.5 rounded-full select-none"
-                >
-                  {tag}
-                </Badge>
-              ))}
-              {botDetail.rating ? (
-                <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full text-xs font-bold text-amber-400 shadow-md shadow-amber-500/5">
-                  <Stars rating={botDetail.rating} size={13} />
-                  <span>{botDetail.rating} ({botDetail.feedbackCount})</span>
-                </div>
-              ) : (
-                <span className="text-xs text-slate-500 font-semibold border border-slate-900 px-3 py-1 rounded-full">
-                  Sem avaliações
-                </span>
-              )}
-            </div>
-          </div>
+    <div className="space-y-6">
+      {/* Hero: blurred-avatar cover, big avatar, name, chips and actions */}
+      <section className="relative overflow-hidden rounded-3xl border border-slate-900 bg-zinc-950/70">
+        <div className="relative h-36 overflow-hidden sm:h-48">
+          <img src={avatar} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-150 object-cover opacity-70 blur-3xl saturate-150" />
+          <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.09)_1px,transparent_1px)] opacity-40 [background-size:18px_18px]" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-zinc-950 to-transparent" />
         </div>
 
-        {/* Description box */}
-        <Card className="border border-slate-900 bg-slate-950/20">
-          <CardHeader className="flex flex-row items-center gap-2 p-6 pb-4">
-            <Info className="w-4 h-4 text-zinc-400" />
-            <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-300">
-              Sobre o Bot
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-6 pb-6 text-slate-300 text-sm leading-relaxed">
-            {botDetail.description ? <Markdown>{botDetail.description}</Markdown> : "Nenhuma descrição informada."}
-          </CardContent>
-        </Card>
+        <div className="relative -mt-16 flex flex-col gap-5 px-6 pb-6 md:flex-row md:items-end md:justify-between md:px-8">
+          <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-end sm:text-left">
+            <img
+              src={avatar}
+              alt={botDetail.username}
+              className="h-28 w-28 shrink-0 rounded-3xl border-4 border-zinc-950 bg-zinc-900 object-cover shadow-2xl shadow-black/60 sm:h-32 sm:w-32"
+            />
+            <div className="min-w-0 space-y-2.5 pb-1">
+              <h1 className="break-words text-3xl font-extrabold tracking-tight text-white sm:text-4xl">{botDetail.username}</h1>
+              <div className="flex flex-wrap items-center justify-center gap-1.5 sm:justify-start">
+                <span className="rounded-full border border-slate-800 bg-slate-900/70 px-2.5 py-0.5 text-[11px] font-bold text-slate-300">
+                  {botDetail.language}
+                </span>
+                {categories.map((c) => {
+                  const Icon = c.icon;
+                  return (
+                    <span key={c.id} className={cn("flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-bold", c.text, c.bg, c.border)}>
+                      <Icon className="h-3 w-3" />
+                      {c.label}
+                    </span>
+                  );
+                })}
+                {extraTags.map((t) => (
+                  <span key={t} className="rounded-full border border-slate-800 px-2.5 py-0.5 text-[11px] font-semibold text-slate-400">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
 
-        {latestChangelog && (
-          <div 
-            onClick={() => setActiveTab("changelogs")}
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3.5 rounded-xl border border-slate-900 bg-slate-950/20 hover:bg-slate-950/40 transition-colors duration-200 cursor-pointer group select-none w-full overflow-hidden"
-          >
-            <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
-              {/* Minimal version tag */}
-              <span className="shrink-0 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-500">
+          <div className="flex flex-wrap items-center justify-center gap-2 md:justify-end md:pb-1">
+            {isOwner && (
+              <button
+                onClick={() => setIsEditingBot(true)}
+                className="flex h-10 items-center gap-1.5 rounded-xl border border-slate-800 bg-zinc-950/60 px-4 text-xs font-bold text-slate-200 transition-colors hover:border-slate-600 hover:text-white"
+              >
+                <Settings className="h-4 w-4" />
+                Editar bot
+              </button>
+            )}
+            <a
+              href={inviteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-10 items-center gap-1.5 rounded-xl bg-white px-5 text-xs font-extrabold text-black shadow-lg shadow-black/40 transition-colors hover:bg-zinc-200"
+            >
+              <Plus className="h-4 w-4" />
+              Adicionar ao servidor
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className={cn(panel, "flex items-center gap-3 p-4")}>
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10">
+            <Flame className="h-5 w-5 text-orange-400" />
+          </span>
+          <div>
+            <p className="text-xl font-black leading-none text-white">{botDetail.votes.toLocaleString("pt-BR")}</p>
+            <p className="mt-1 text-[11px] font-semibold text-slate-500">votos</p>
+          </div>
+        </div>
+        <div className={cn(panel, "flex items-center gap-3 p-4")}>
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10">
+            <Star className="h-5 w-5 fill-amber-400/30 text-amber-400" />
+          </span>
+          <div>
+            <p className="text-xl font-black leading-none text-white">{hasRating ? botDetail.rating!.toFixed(1) : "—"}</p>
+            <p className="mt-1 text-[11px] font-semibold text-slate-500">
+              {botDetail.feedbackCount ? `${botDetail.feedbackCount} avaliações` : "sem avaliações"}
+            </p>
+          </div>
+        </div>
+        <div className={cn(panel, "flex items-center gap-3 p-4")}>
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10">
+            <Terminal className="h-5 w-5 text-indigo-300" />
+          </span>
+          <div>
+            <p className="text-xl font-black leading-none text-white">{commandCount}</p>
+            <p className="mt-1 text-[11px] font-semibold text-slate-500">comandos</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => copy(botDetail.prefix, "prefix")}
+          title="Copiar prefixo"
+          className={cn(panel, "group flex items-center gap-3 p-4 text-left transition-colors hover:border-slate-700")}
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10">
+            <Code2 className="h-5 w-5 text-cyan-300" />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate font-mono text-xl font-black leading-none text-white">{botDetail.prefix}</p>
+            <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-slate-500">
+              {copied === "prefix" ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />}
+              {copied === "prefix" ? "copiado!" : "prefixo"}
+            </p>
+          </div>
+        </button>
+      </section>
+
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        {/* Main column */}
+        <div className="min-w-0 space-y-6">
+          <section className={cn(panel, "p-6")}>
+            <h2 className={sectionTitle}>
+              <Info className="h-4 w-4" />
+              Sobre o bot
+            </h2>
+            <div className="mt-4 text-sm leading-relaxed text-slate-300">
+              {botDetail.description ? <Markdown>{botDetail.description}</Markdown> : <p className="text-slate-500">Nenhuma descrição informada.</p>}
+            </div>
+          </section>
+
+          {latestChangelog && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("changelogs")}
+              className={cn(panel, "group flex w-full items-center gap-3 overflow-hidden px-4 py-3 text-left transition-colors hover:border-slate-700")}
+            >
+              <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-amber-500/25 bg-amber-500/10 px-2 py-1 font-mono text-[11px] font-black text-amber-400">
+                <Sparkles className="h-3 w-3" />
                 {latestChangelog.version}
               </span>
-              
-              {/* Info text */}
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                <span className="text-xs font-semibold text-slate-200 truncate shrink-0">
-                  {latestChangelog.title}
-                </span>
-                <span className="text-slate-700 text-xs shrink-0">&bull;</span>
-                <div className="text-slate-400 text-xs truncate font-medium flex-1 min-w-0">
-                  <Markdown inline>{latestChangelog.content}</Markdown>
-                </div>
-              </div>
-            </div>
-
-            {/* Date and tiny arrow */}
-            <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto border-t sm:border-t-0 border-slate-900/60 pt-2 sm:pt-0">
-              <span className="text-[10px] text-slate-550 font-medium sm:hidden">
-                Publicado em:
+              <span className="shrink-0 text-sm font-bold text-slate-200">{latestChangelog.title}</span>
+              <span className="hidden min-w-0 flex-1 truncate text-xs text-slate-500 sm:block">
+                <Markdown inline>{latestChangelog.content}</Markdown>
               </span>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-slate-550 font-medium">
-                  {parseLocalDate(latestChangelog.date).toLocaleDateString("pt-BR")}
-                </span>
-                <span className="text-slate-650 group-hover:text-slate-450 group-hover:translate-x-0.5 transition-all duration-200 text-xs">
-                  &rarr;
-                </span>
-              </div>
-            </div>
+              <span className="ml-auto flex shrink-0 items-center gap-1.5 text-[11px] font-semibold text-slate-500">
+                {parseLocalDate(latestChangelog.date).toLocaleDateString("pt-BR")}
+                <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </button>
+          )}
+
+          {/* Tabs */}
+          <div className="flex gap-1 overflow-x-auto rounded-2xl border border-slate-900 bg-zinc-950/60 p-1.5 [scrollbar-width:none]">
+            {tabs.map((t) => {
+              const Icon = t.icon;
+              const active = activeTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setActiveTab(t.id)}
+                  className={cn(
+                    "flex flex-1 shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-200",
+                    active ? "bg-white text-black shadow-md" : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {t.label}
+                  <span className={cn("rounded-md px-1.5 text-[10px] font-black", active ? "bg-black/10 text-zinc-700" : "bg-slate-900 text-slate-500")}>
+                    {t.count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-        )}
 
-        {/* Tab Selector */}
-        <div className="flex border-b border-slate-900 gap-1 pb-px overflow-x-auto scrollbar-none whitespace-nowrap w-full">
-          {[
-            { id: "feedbacks", label: `Avaliações (${feedbacks.length})`, icon: Star },
-            { id: "commands", label: "Comandos", icon: Terminal },
-            { id: "changelogs", label: `Atualizações (${botDetail.changelogs?.length || 0})`, icon: History },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all duration-200 shrink-0 ${
-                  active
-                    ? "border-white text-white bg-slate-950/20"
-                    : "border-transparent text-slate-500 hover:text-slate-350"
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {activeTab === "commands" && (
-          <Card className="border border-slate-900 bg-slate-950/20">
-            <CardHeader className="p-6 pb-4">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-zinc-400" />
-                Comandos do Bot
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-6 pb-6 space-y-4">
-              {!botDetail.commands || botDetail.commands.length === 0 ? (
-                <div className="text-center py-8 text-slate-550 text-sm font-medium">
-                  Este bot ainda não tem comandos cadastrados pelo desenvolvedor.
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-3.5">
-                  {botDetail.commands.map((cmd, i) => (
-                    <div
-                      key={i}
-                      className="border border-slate-900/60 bg-slate-950/40 rounded-2xl p-4 space-y-2 hover:border-slate-800 transition-all duration-200"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <code className="text-sm font-mono font-bold text-white bg-slate-900 border border-slate-850 px-2 py-0.5 rounded-lg">
-                            {cmd.type === "slash" ? "/" : botDetail.prefix || "!"}
-                            {cmd.name}
-                          </code>
-                          <Badge variant="outline" className="text-[10px] uppercase font-bold py-0">
-                            {cmd.type}
-                          </Badge>
-                        </div>
-                        {cmd.usage && (
-                          <span className="text-[10px] text-slate-500 font-mono">
-                            Uso: {cmd.usage}
-                          </span>
+          {activeTab === "commands" &&
+            (commandCount === 0 ? (
+              <p className={cn(panel, "py-12 text-center text-sm font-medium text-slate-500")}>
+                Este bot ainda não tem comandos cadastrados pelo desenvolvedor.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                {botDetail.commands!.map((cmd, i) => (
+                  <div key={i} className={cn(panel, "space-y-2 p-4 transition-colors hover:border-slate-700")}>
+                    <div className="flex items-center justify-between gap-2">
+                      <code className="truncate rounded-lg border border-slate-800 bg-slate-900 px-2 py-0.5 font-mono text-sm font-bold text-white">
+                        {cmd.type === "slash" ? "/" : botDetail.prefix || "!"}
+                        {cmd.name}
+                      </code>
+                      <span
+                        className={cn(
+                          "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider",
+                          cmd.type === "slash" ? "bg-indigo-500/10 text-indigo-300" : "bg-cyan-500/10 text-cyan-300"
                         )}
-                      </div>
-                      <p className="text-slate-400 text-xs leading-relaxed">
-                        {cmd.description}
-                      </p>
+                      >
+                        {cmd.type === "slash" ? "slash" : "prefixo"}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+                    <p className="text-xs leading-relaxed text-slate-400">{cmd.description}</p>
+                    {cmd.usage && <p className="font-mono text-[11px] text-slate-500">Uso: {cmd.usage}</p>}
+                  </div>
+                ))}
+              </div>
+            ))}
 
-        {activeTab === "changelogs" && (
-          <Card className="border border-slate-900 bg-slate-950/20">
-            <CardHeader className="p-6 pb-4">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <History className="w-4 h-4 text-zinc-400" />
-                Notas de Atualização (Changelogs)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              {!botDetail.changelogs || botDetail.changelogs.length === 0 ? (
-                <div className="text-center py-8 text-slate-550 text-sm font-medium">
-                  Este bot ainda não tem notas de atualização publicadas pelo desenvolvedor.
-                </div>
-              ) : (
-                <div className="relative border-l border-slate-900 ml-3.5 space-y-8 py-2">
-                  {[...botDetail.changelogs]
+          {activeTab === "changelogs" &&
+            (changelogCount === 0 ? (
+              <p className={cn(panel, "py-12 text-center text-sm font-medium text-slate-500")}>
+                Este bot ainda não tem notas de atualização publicadas pelo desenvolvedor.
+              </p>
+            ) : (
+              <div className={cn(panel, "p-6")}>
+                <div className="relative ml-2 space-y-8 border-l border-slate-800 py-1">
+                  {[...botDetail.changelogs!]
                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                     .map((log, idx) => (
-                      <div key={idx} className="relative pl-7 group">
-                        {/* Timeline node dot */}
-                        <div className="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-slate-950 border border-slate-800 group-hover:border-amber-500 transition-colors" />
-                        
-                        <div className="space-y-1.5">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-xs font-mono font-black bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-0.5 rounded-lg shadow-sm">
-                              {log.version}
-                            </span>
-                            <span className="text-[10px] text-slate-500 font-bold">
-                              {parseLocalDate(log.date).toLocaleDateString("pt-BR")}
-                            </span>
-                          </div>
-                          
-                          <h4 className="text-sm font-extrabold text-white">{log.title}</h4>
-                          <Markdown className="text-slate-400 text-xs leading-relaxed bg-slate-950/40 border border-slate-950/80 rounded-2xl p-4 mt-2">
-                            {log.content}
-                          </Markdown>
+                      <div key={idx} className="relative pl-6">
+                        <span className={cn("absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-zinc-950", idx === 0 ? "bg-amber-400" : "bg-slate-700")} />
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 font-mono text-xs font-black text-amber-400">
+                            {log.version}
+                          </span>
+                          <span className="text-[11px] font-semibold text-slate-500">{parseLocalDate(log.date).toLocaleDateString("pt-BR")}</span>
                         </div>
+                        <h4 className="mt-1.5 text-sm font-extrabold text-white">{log.title}</h4>
+                        <Markdown className="mt-2 text-xs leading-relaxed text-slate-400">{log.content}</Markdown>
                       </div>
                     ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+              </div>
+            ))}
 
-        {activeTab === "feedbacks" && (
-          <div className="space-y-6">
-            <h3 className="text-lg font-bold text-white border-l-4 border-zinc-300 pl-3">
-              Avaliações da Comunidade
-            </h3>
-
-            {user ? (
-              <Card className="border border-slate-900 bg-slate-950/20">
-                <CardHeader className="p-6 pb-2">
-                  <CardTitle className="text-sm font-bold text-slate-200">
-                    {existingFeedback ? "Edite sua avaliação" : "Escreva um feedback"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 pt-0 space-y-4">
-                  <form 
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      if (existingFeedback) {
-                        onEditFeedback(newRating, newComment);
-                      } else {
-                        onSubmitFeedback(e);
-                      }
-                    }} 
-                    className="space-y-4"
-                  >
-                    <div className="flex items-center gap-1.5">
+          {activeTab === "feedbacks" && (
+            <div className="space-y-4">
+              {user ? (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (existingFeedback) onEditFeedback(newRating, newComment);
+                    else onSubmitFeedback(e);
+                  }}
+                  className={cn(panel, "space-y-4 p-5")}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-sm font-bold text-slate-200">{existingFeedback ? "Sua avaliação" : "Avalie este bot"}</span>
+                    <div className="flex items-center gap-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
                           key={star}
                           type="button"
                           onClick={() => onRatingChange(star)}
-                          className="p-0.5 hover:scale-110 active:scale-95 transition-transform"
+                          aria-label={star === 1 ? "1 estrela" : `${star} estrelas`}
+                          className="p-0.5 transition-transform hover:scale-110 active:scale-95"
                         >
-                          <Star 
-                            className={`w-6 h-6 ${
-                              newRating >= star 
-                                ? "text-amber-400 fill-amber-400" 
-                                : "text-slate-700 hover:text-slate-500"
-                            }`} 
-                          />
+                          <Star className={cn("h-6 w-6", newRating >= star ? "fill-amber-400 text-amber-400" : "text-slate-700 hover:text-slate-500")} />
                         </button>
                       ))}
                     </div>
-                    <Textarea
-                      placeholder="Conte sua experiência utilizando o bot..."
-                      value={newComment}
-                      onChange={(e) => onCommentChange(e.target.value)}
-                      maxLength={500}
-                      className="min-h-[100px]"
-                    />
-                    {feedbackError && (
-                      <div className="flex items-center gap-2 text-xs font-semibold text-red-400 bg-red-500/10 border border-red-500/20 px-3.5 py-2.5 rounded-xl">
-                        <ShieldAlert className="w-4 h-4 shrink-0" />
-                        <span>{feedbackError}</span>
-                      </div>
-                    )}
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button type="submit" variant="default" disabled={submittingFeedback || newComment.trim().length === 0}>
-                        {submittingFeedback ? "Processando..." : existingFeedback ? "Salvar Alterações" : "Enviar Avaliação"}
-                      </Button>
-                      {existingFeedback && (
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          disabled={submittingFeedback}
-                          onClick={onDeleteFeedback}
-                          className="flex items-center gap-1.5"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Excluir
-                        </Button>
-                      )}
+                  </div>
+                  <Textarea
+                    placeholder="Conte sua experiência utilizando o bot..."
+                    value={newComment}
+                    onChange={(e) => onCommentChange(e.target.value)}
+                    maxLength={500}
+                    className="min-h-[96px]"
+                  />
+                  {feedbackError && (
+                    <div className="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3.5 py-2.5 text-xs font-semibold text-red-400">
+                      <ShieldAlert className="h-4 w-4 shrink-0" />
+                      <span>{feedbackError}</span>
                     </div>
-                  </form>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="text-center p-6 border border-slate-900 rounded-2xl text-slate-500 text-sm font-medium">
-                Você precisa estar logado para deixar uma avaliação.
-              </div>
-            )}
+                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button type="submit" variant="default" disabled={submittingFeedback || newComment.trim().length === 0}>
+                      {submittingFeedback ? "Processando..." : existingFeedback ? "Salvar alterações" : "Enviar avaliação"}
+                    </Button>
+                    {existingFeedback && (
+                      <Button type="button" variant="destructive" disabled={submittingFeedback} onClick={onDeleteFeedback} className="flex items-center gap-1.5">
+                        <Trash2 className="h-4 w-4" />
+                        Excluir
+                      </Button>
+                    )}
+                  </div>
+                </form>
+              ) : (
+                <button
+                  type="button"
+                  onClick={startLogin}
+                  className={cn(panel, "w-full p-5 text-center text-sm font-medium text-slate-400 transition-colors hover:border-slate-700 hover:text-white")}
+                >
+                  Faça login para deixar uma avaliação
+                </button>
+              )}
 
-            {/* Feedback list */}
-            <div className="space-y-4">
               {feedbacks.length === 0 ? (
-                <p className="text-center py-8 text-slate-650 text-sm font-medium">
-                  Nenhum feedback ainda. Seja o primeiro a apoiar!
-                </p>
+                <p className="py-8 text-center text-sm font-medium text-slate-500">Nenhuma avaliação ainda. Seja o primeiro!</p>
               ) : (
                 feedbacks.map((fb) => (
-                  <Card key={fb.id} className="border border-slate-900 bg-slate-950/10">
-                    <CardContent className="p-5 flex gap-4">
-                      <img 
-                        className="w-10 h-10 rounded-full border border-slate-900 shrink-0 object-cover" 
-                        src={getAvatarUrl(fb.userId, fb.avatar)} 
-                        alt={fb.username} 
-                      />
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-sm text-slate-200">
-                            {fb.username}
-                          </span>
-                          <Stars rating={fb.rating} size={11} />
-                        </div>
-                        <p className="text-slate-400 text-xs leading-relaxed">
-                          {fb.comment}
-                        </p>
-                        <div className="flex items-center gap-1.5 text-[10px] text-slate-600 font-semibold">
-                          <Calendar className="w-3 h-3" />
-                          <span>{parseLocalDate(fb.date).toLocaleDateString("pt-BR")}</span>
-                        </div>
+                  <div key={fb.id} className={cn(panel, "flex gap-4 p-5")}>
+                    <img className="h-10 w-10 shrink-0 rounded-full object-cover" src={getAvatarUrl(fb.userId, fb.avatar)} alt="" />
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-sm font-bold text-slate-200">{fb.username}</span>
+                        <Stars rating={fb.rating} size={12} />
                       </div>
-                    </CardContent>
-                  </Card>
+                      <p className="break-words text-sm leading-relaxed text-slate-400">{fb.comment}</p>
+                      <p className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600">
+                        <Calendar className="h-3 w-3" />
+                        {parseLocalDate(fb.date).toLocaleDateString("pt-BR")}
+                      </p>
+                    </div>
+                  </div>
                 ))
               )}
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Sidebar Column */}
-      <div className="space-y-6">
-        
-        {/* Main CTA */}
-        {user ? (
-          <div className="space-y-3">
-            {recaptchaSiteKey && !voteCooldownText && (
-              <ReCaptcha
-                key={recaptchaSiteKey}
-                siteKey={recaptchaSiteKey}
-                onChange={setCaptchaToken}
-              />
+        {/* Sidebar */}
+        <aside className="space-y-4 lg:sticky lg:top-28">
+          <div className={cn(panel, "space-y-4 p-5")}>
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Votos</p>
+                <p className="mt-1 flex items-center gap-1.5 text-3xl font-black text-white">
+                  <Flame className="h-6 w-6 text-orange-500" />
+                  {botDetail.votes.toLocaleString("pt-BR")}
+                </p>
+              </div>
+              {hasRating && (
+                <div className="text-right">
+                  <Stars rating={botDetail.rating!} size={13} />
+                  <p className="mt-1 text-[11px] font-semibold text-slate-500">{botDetail.feedbackCount} avaliações</p>
+                </div>
+              )}
+            </div>
+            {user ? (
+              <>
+                {recaptchaSiteKey && !voteCooldownText && <ReCaptcha key={recaptchaSiteKey} siteKey={recaptchaSiteKey} onChange={setCaptchaToken} />}
+                <button
+                  onClick={() => {
+                    onVote(captchaToken);
+                    setCaptchaToken(null);
+                  }}
+                  disabled={!!voteCooldownText || (!!recaptchaSiteKey && !captchaToken)}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-sm font-extrabold text-black shadow-lg shadow-orange-500/20 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {voteCooldownText ? `Próximo voto em ${voteCooldownText}` : "Votar no bot 🔥"}
+                </button>
+                <p className="text-center text-[11px] text-slate-500">Votar rende unicoins e ajuda o bot a subir no ranking.</p>
+              </>
+            ) : (
+              <button
+                onClick={startLogin}
+                className="flex h-12 w-full items-center justify-center rounded-xl border border-slate-800 text-sm font-bold text-white transition-colors hover:bg-slate-900"
+              >
+                Faça login para votar
+              </button>
             )}
-            <Button 
-              className="w-full h-12 text-sm font-bold" 
-              variant="premium"
-              onClick={() => {
-                onVote(captchaToken);
-                setCaptchaToken(null);
-              }} 
-              disabled={!!voteCooldownText || (!!recaptchaSiteKey && !captchaToken)}
-            >
-              {voteCooldownText ? `Cooldown: ${voteCooldownText}` : "Votar no Bot 🔥"}
-            </Button>
           </div>
-        ) : (
-          <Button 
-            className="w-full h-12 text-sm font-bold" 
-            variant="premium"
-            onClick={() => {
-              startLogin();
-            }}
-          >
-            Faça Login para Votar
-          </Button>
-        )}
 
-        <Button 
-          className="w-full h-12 text-sm font-bold" 
-          variant="outline"
-          onClick={() => window.open(inviteUrl, "_blank", "noopener,noreferrer")}
-        >
-          <ExternalLink className="w-4 h-4 mr-2" />
-          Adicionar ao Servidor
-        </Button>
+          {botDetail.ownerId && (
+            <Link href={`/user/${botDetail.ownerId}`} className={cn(panel, "group flex items-center gap-3 p-4 transition-colors hover:border-slate-700")}>
+              <img className="h-11 w-11 shrink-0 rounded-full object-cover" src={getAvatarUrl(botDetail.ownerId, botDetail.ownerAvatar || null)} alt="" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Desenvolvedor</p>
+                <p className="truncate text-sm font-bold text-slate-200 group-hover:text-white">{botDetail.ownerName ?? "Desconhecido"}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-slate-600 transition-transform group-hover:translate-x-0.5 group-hover:text-slate-300" />
+            </Link>
+          )}
 
-        {/* Bot Information Card */}
-        <Card className="border border-slate-900 bg-slate-950/20">
-          <CardHeader className="p-6 pb-4">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Especificações
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 pt-0 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-900 pb-3">
-              <span className="text-xs text-slate-400 font-semibold">Votos totais</span>
-              <span className="flex items-center gap-1 text-sm font-bold text-orange-400">
-                <Flame className="w-4 h-4" />
-                <span>{botDetail.votes}</span>
-              </span>
+          <div className={cn(panel, "divide-y divide-slate-900 text-xs")}>
+            <div className="flex items-center justify-between gap-3 px-4 py-3">
+              <span className="font-semibold text-slate-500">Linguagem</span>
+              <span className="font-bold text-slate-200">{botDetail.language}</span>
             </div>
-            <div className="flex items-center justify-between border-b border-slate-900 pb-3">
-              <span className="text-xs text-slate-400 font-semibold">Prefixo</span>
-              <code className="bg-slate-900 text-cyan-400 border border-slate-800 px-2 py-0.5 rounded font-mono text-xs font-bold">
-                {botDetail.prefix}
-              </code>
+            <div className="flex items-center justify-between gap-3 px-4 py-3">
+              <span className="font-semibold text-slate-500">ID do bot</span>
+              <button
+                type="button"
+                onClick={() => copy(botDetail.id, "id")}
+                title="Copiar ID"
+                className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] font-bold text-slate-300 hover:text-white"
+              >
+                <span className="truncate">{botDetail.id}</span>
+                {copied === "id" ? <Check className="h-3.5 w-3.5 shrink-0 text-emerald-400" /> : <Copy className="h-3.5 w-3.5 shrink-0" />}
+              </button>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400 font-semibold">ID do Client</span>
-              <span className="font-mono text-[10px] text-slate-500 font-bold select-all">
-                {botDetail.id}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Owner Card */}
-        <Card className="border border-slate-900 bg-slate-950/20">
-          <CardHeader className="p-6 pb-4">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-404">
-              Desenvolvedor
-            </CardTitle>
-          </CardHeader>
-          <CardContent 
-            className="p-6 pt-0 flex items-center gap-3 cursor-pointer hover:opacity-90 select-none group/owner"
-            onClick={() => router.push(`/user/${botDetail.ownerId}`)}
-          >
-            <img 
-              className="w-11 h-11 rounded-full border border-slate-900 shrink-0 object-cover group-hover/owner:border-zinc-500 transition-colors" 
-              src={getAvatarUrl(botDetail.ownerId || "", botDetail.ownerAvatar || null)} 
-              alt={botDetail.ownerName} 
-            />
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-slate-200 flex items-center gap-1.5 group-hover/owner:text-white transition-colors">
-                <User className="w-3.5 h-3.5 text-zinc-400" />
-                <span>{botDetail.ownerName}</span>
-              </span>
-              <span className="font-mono text-[10px] text-slate-500 font-bold select-all">
-                {botDetail.ownerId}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
+          </div>
+        </aside>
       </div>
 
       {/* EDIT BOT MODAL */}
