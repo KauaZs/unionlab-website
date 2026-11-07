@@ -44,11 +44,11 @@ export default function BotCard({ bot, rank }: BotCardProps) {
         medal === 1 ? "border-amber-500/30 hover:border-amber-500/50" : "border-slate-900 hover:border-slate-700"
       )}
     >
-      {/* Whole card is a link; inner actions sit above it with z-10. */}
+      {/* Whole card is a link stacked above the (positioned) content; inner actions sit above it with z-10. */}
       <Link
         href={`/bot/${bot.id}`}
         aria-label={`Ver perfil de ${bot.username}`}
-        className="absolute inset-0 z-0 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+        className="absolute inset-0 z-[1] rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
       />
 
       {/* Banner */}

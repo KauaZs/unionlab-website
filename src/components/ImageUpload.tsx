@@ -4,31 +4,85 @@ import { useRef, useState } from "react";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/** What the API accepts after our own compression (it re-checks this). */
 export const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+/** What we accept from the user's disk; anything but GIF is re-encoded below MAX_IMAGE_BYTES. */
+const MAX_INPUT_BYTES = 25 * 1024 * 1024;
+const MAX_DIMENSION = 1920;
 const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
-function readAsDataUrl(file: File) {
+function readAsDataUrl(blob: Blob) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(blob);
   });
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number) {
+  return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+/**
+ * Downscales to MAX_DIMENSION and re-encodes as WebP so phone photos and screenshots
+ * (often 3–15 MB PNGs) fit the upload limit. GIFs are sent as-is to keep animation.
+ */
+export async function prepareImage(file: File): Promise<Blob> {
+  if (file.type === "image/gif") {
+    if (file.size > MAX_IMAGE_BYTES) throw new Error("GIFs devem ter no máximo 4 MB.");
+    return file;
+  }
+
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    throw new Error("Não foi possível ler esta imagem.");
+  }
+  const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+  const width = Math.round(bitmap.width * scale);
+  const height = Math.round(bitmap.height * scale);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close();
+
+  for (const quality of [0.86, 0.72, 0.55]) {
+    const blob = await canvasToBlob(canvas, "image/webp", quality);
+    if (!blob) break;
+    // Small originals that didn't need resizing may already be smaller than the re-encode.
+    if (scale === 1 && file.size <= blob.size && file.size <= MAX_IMAGE_BYTES) return file;
+    if (blob.size <= MAX_IMAGE_BYTES) return blob;
+  }
+  throw new Error("A imagem continua grande demais mesmo após compressão.");
 }
 
 /** Uploads one image through the API (which stores it on Catbox) and returns its URL. */
 export async function uploadImageFile(file: File, authToken: string): Promise<string> {
   if (!ACCEPTED.includes(file.type)) throw new Error("Use PNG, JPG, GIF ou WEBP.");
-  if (file.size > MAX_IMAGE_BYTES) throw new Error("A imagem deve ter no máximo 4 MB.");
-  const data = await readAsDataUrl(file);
-  const res = await fetch("/api/public/uploads/image", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
-    body: JSON.stringify({ data }),
-  });
+  if (file.size > MAX_INPUT_BYTES) throw new Error("A imagem deve ter no máximo 25 MB.");
+
+  const data = await readAsDataUrl(await prepareImage(file));
+  let res: Response;
+  try {
+    res = await fetch("/api/public/uploads/image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ data }),
+    });
+  } catch {
+    throw new Error("Sem conexão com o servidor. Tente novamente.");
+  }
+
   const body = await res.json().catch(() => ({}));
-  if (!res.ok || !body.url) throw new Error(body.error || "Falha ao enviar a imagem.");
-  return body.url as string;
+  if (res.ok && body.url) return body.url as string;
+  if (body.error) throw new Error(body.error);
+  if (res.status === 413) throw new Error("A imagem é grande demais para o servidor.");
+  if (res.status === 401) throw new Error("Sua sessão expirou. Faça login novamente.");
+  throw new Error(`Falha ao enviar a imagem (erro ${res.status}).`);
 }
 
 interface ImageUploadProps {

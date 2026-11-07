@@ -275,7 +275,7 @@ export default function PublishProject({ initialType, editing }: PublishProjectP
                 onChange={setCover}
                 max={1}
                 variant="cover"
-                hint="16:9 recomendado • até 4 MB"
+                hint="16:9 recomendado • PNG, JPG, WEBP ou GIF"
                 onError={(m) => showToast(m, "error")}
               />
             </div>
@@ -288,7 +288,7 @@ export default function PublishProject({ initialType, editing }: PublishProjectP
                 onChange={setScreenshots}
                 max={LIMITS.screenshots}
                 variant="gallery"
-                hint="até 4 MB"
+                hint="PNG, JPG, WEBP ou GIF"
                 onError={(m) => showToast(m, "error")}
               />
             </div>

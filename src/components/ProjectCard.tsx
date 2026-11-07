@@ -31,7 +31,7 @@ export default function ProjectCard({ project, rank }: ProjectCardProps) {
       <Link
         href={`/projects/${project.id}`}
         aria-label={`Ver ${project.title}`}
-        className="absolute inset-0 z-0 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+        className="absolute inset-0 z-[1] rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
       />
 
       {/* Cover */}
