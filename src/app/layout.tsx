@@ -1,21 +1,10 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Outfit } from "next/font/google";
+// Fonts are self-hosted from npm so the build never has to download them from Google
+// (next/font/google failed in the deploy environment with "module not found").
+import "@fontsource-variable/plus-jakarta-sans";
+import "@fontsource-variable/outfit";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
-
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  variable: "--font-jakarta",
-  display: "swap",
-});
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  weight: ["400", "600", "800"],
-  variable: "--font-outfit",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Union Lab - Bot List & Community Hub",
@@ -28,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`dark ${jakarta.variable} ${outfit.variable}`}>
+    <html lang="pt-BR" className="dark">
       <body className="min-h-screen text-white">
         <AppProvider>{children}</AppProvider>
       </body>

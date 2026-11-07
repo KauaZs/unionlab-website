@@ -3,6 +3,8 @@
 @tailwind utilities;
 
 :root {
+  --font-jakarta: "Plus Jakarta Sans Variable";
+  --font-outfit: "Outfit Variable";
   font-family: var(--font-jakarta), sans-serif;
   line-height: 1.6;
   font-weight: 400;
