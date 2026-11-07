@@ -12,6 +12,8 @@ export interface ProjectTypeInfo {
   bg: string;
   border: string;
   gradient: [string, string];
+  /** Bright accent (hex) for highlights such as the active explore tab. */
+  accent: string;
   /** What the main link is, shown on the submit form. */
   urlLabel: string;
   urlPlaceholder: string;
@@ -21,25 +23,25 @@ export interface ProjectTypeInfo {
 export const PROJECT_TYPES: ProjectTypeInfo[] = [
   {
     id: "website", label: "Website", plural: "Sites", icon: Globe,
-    text: "text-sky-400", bg: "bg-sky-500/10", border: "border-sky-500/25", gradient: ["#0c4a6e", "#082f49"],
+    text: "text-sky-400", bg: "bg-sky-500/10", border: "border-sky-500/25", gradient: ["#0c4a6e", "#082f49"], accent: "#38bdf8",
     urlLabel: "Link do site", urlPlaceholder: "https://meusite.com",
     suggestedTags: ["Portfólio", "Landing Page", "Dashboard", "E-commerce", "Blog", "Ferramenta", "Open Source"],
   },
   {
     id: "game", label: "Jogo", plural: "Jogos", icon: Gamepad2,
-    text: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/25", gradient: ["#064e3b", "#022c22"],
+    text: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/25", gradient: ["#064e3b", "#022c22"], accent: "#34d399",
     urlLabel: "Link para jogar", urlPlaceholder: "https://itch.io/... ou https://roblox.com/games/...",
     suggestedTags: ["Roblox", "Minecraft", "Navegador", "Mobile", "PC", "Multiplayer", "Indie", "Game Jam"],
   },
   {
     id: "music", label: "Música", plural: "Músicas", icon: Music,
-    text: "text-fuchsia-400", bg: "bg-fuchsia-500/10", border: "border-fuchsia-500/25", gradient: ["#701a75", "#3b0764"],
+    text: "text-fuchsia-400", bg: "bg-fuchsia-500/10", border: "border-fuchsia-500/25", gradient: ["#701a75", "#3b0764"], accent: "#e879f9",
     urlLabel: "Link da música", urlPlaceholder: "https://open.spotify.com/... ou https://youtube.com/...",
     suggestedTags: ["Trap", "Funk", "Lo-fi", "Eletrônica", "Rock", "Rap", "Beat", "Instrumental"],
   },
   {
     id: "other", label: "Outro", plural: "Outros", icon: Shapes,
-    text: "text-slate-300", bg: "bg-slate-500/10", border: "border-slate-500/25", gradient: ["#27272a", "#18181b"],
+    text: "text-slate-300", bg: "bg-slate-500/10", border: "border-slate-500/25", gradient: ["#27272a", "#18181b"], accent: "#cbd5e1",
     urlLabel: "Link do projeto", urlPlaceholder: "https://...",
     suggestedTags: ["Biblioteca", "API", "Extensão", "App", "Design", "Arte", "Vídeo"],
   },
@@ -48,7 +50,7 @@ export const PROJECT_TYPES: ProjectTypeInfo[] = [
 export const PROJECT_TYPE_BY_ID = Object.fromEntries(PROJECT_TYPES.map((t) => [t.id, t])) as Record<ProjectType, ProjectTypeInfo>;
 
 /** Bots are not a project type, but share the explore tabs. */
-export const BOT_TAB = { id: "bots" as const, plural: "Bots", icon: Bot };
+export const BOT_TAB = { id: "bots" as const, label: "Bot", plural: "Bots", icon: Bot, text: "text-indigo-300", bg: "bg-indigo-500/10", accent: "#818cf8" };
 
 export function projectGradient(type: ProjectType) {
   const [from, to] = PROJECT_TYPE_BY_ID[type].gradient;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import { Search, Bot, Users, Flame, X, Plus } from "lucide-react";
 import EventBanner from "../components/EventBanner";
@@ -83,6 +83,18 @@ export default function Home({ initialBots, initialProjects, initialEvent, initi
       .catch((err) => console.error("Error loading active outdoor:", err));
   }, [initialEvent]);
 
+  // Keep the active tab visible in the horizontally scrolling bar (mobile), without scrolling the page.
+  const tabsRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const nav = tabsRef.current;
+    const el = nav?.querySelector<HTMLElement>(`[data-tab="${tab}"]`);
+    if (!nav || !el) return;
+    const left = el.offsetLeft - nav.offsetLeft;
+    if (left < nav.scrollLeft || left + el.offsetWidth > nav.scrollLeft + nav.clientWidth) {
+      nav.scrollTo({ left: left - 8, behavior: "smooth" });
+    }
+  }, [tab]);
+
   const selectTab = (next: ExploreTab) => {
     setTab(next);
     // Keep the tab shareable without a server round-trip.
@@ -97,8 +109,17 @@ export default function Home({ initialBots, initialProjects, initialEvent, initi
   }, [projects.items]);
 
   const tabs = [
-    { id: "bots" as ExploreTab, label: BOT_TAB.plural, icon: BOT_TAB.icon, count: bots.items.length, text: "text-white" },
-    ...PROJECT_TYPES.map((t) => ({ id: t.id as ExploreTab, label: t.plural, icon: t.icon, count: projectCounts[t.id] ?? 0, text: t.text })),
+    { id: "bots" as ExploreTab, label: BOT_TAB.plural, unit: ["bot", "bots"], icon: BOT_TAB.icon, count: bots.items.length, text: BOT_TAB.text, bg: BOT_TAB.bg, accent: BOT_TAB.accent },
+    ...PROJECT_TYPES.map((t) => ({
+      id: t.id as ExploreTab,
+      label: t.plural,
+      unit: ["projeto", "projetos"],
+      icon: t.icon,
+      count: projectCounts[t.id] ?? 0,
+      text: t.text,
+      bg: t.bg,
+      accent: t.accent,
+    })),
   ];
 
   const searchPlaceholder =
@@ -158,35 +179,51 @@ export default function Home({ initialBots, initialProjects, initialEvent, initi
         <EventBanner name={activeEvent.name} multiplier={activeEvent.multiplier} eventKey={activeEvent.key} progress={activeEvent.progress} />
       )}
 
-      {/* Explore tabs */}
-      <div className="sticky top-20 z-30 -mx-4 border-b border-slate-900 bg-[#050507]/85 px-4 py-3 backdrop-blur-md sm:mx-0 sm:px-0">
-        <div className="flex items-center justify-between gap-3">
-          <nav className="flex gap-1.5 overflow-x-auto [scrollbar-width:none]" aria-label="Tipos de projeto">
+      {/* Explore tabs: segmented control, active tab takes its type's color */}
+      <div className="sticky top-20 z-30 -mx-4 bg-[#050507]/80 px-4 py-3 backdrop-blur-md sm:mx-0 sm:px-0">
+        <div className="flex items-stretch gap-3">
+          <nav
+            ref={tabsRef}
+            aria-label="Tipos de projeto"
+            className="flex min-w-0 flex-1 gap-1 overflow-x-auto rounded-2xl border border-slate-900 bg-zinc-950/70 p-1.5 shadow-xl shadow-black/30 [scrollbar-width:none]"
+          >
             {tabs.map((t) => {
               const Icon = t.icon;
               const active = tab === t.id;
               return (
                 <button
                   key={t.id}
+                  data-tab={t.id}
                   onClick={() => selectTab(t.id)}
                   aria-current={active ? "page" : undefined}
+                  style={active ? { borderColor: `${t.accent}55`, boxShadow: `inset 0 0 24px -12px ${t.accent}` } : undefined}
                   className={cn(
-                    "flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-bold transition-all duration-200",
-                    active ? "bg-white text-black shadow-md" : "text-slate-400 hover:bg-slate-900/50 hover:text-white"
+                    "group relative flex min-w-[124px] flex-1 items-center gap-3 overflow-hidden rounded-xl border px-3 py-2.5 text-left transition-all duration-200",
+                    active ? "bg-white/[0.04]" : "border-transparent hover:bg-white/[0.03]"
                   )}
                 >
-                  <Icon className={cn("h-4 w-4", !active && t.text)} />
-                  {t.label}
-                  <span className={cn("rounded-md px-1.5 text-[10px] font-black", active ? "bg-black/10 text-zinc-700" : "bg-slate-900 text-slate-500")}>
-                    {t.count}
+                  <span
+                    className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors", t.bg)}
+                    style={active ? { backgroundColor: t.accent } : undefined}
+                  >
+                    <Icon className={cn("h-[18px] w-[18px]", active ? "text-black" : t.text)} />
                   </span>
+                  <span className="min-w-0">
+                    <span className={cn("block truncate text-sm font-extrabold leading-tight", active ? "text-white" : "text-slate-300 group-hover:text-white")}>
+                      {t.label}
+                    </span>
+                    <span className="block text-[11px] font-semibold text-slate-500">
+                      {t.count} {t.count === 1 ? t.unit[0] : t.unit[1]}
+                    </span>
+                  </span>
+                  {active && <span className="absolute inset-x-4 bottom-0 h-0.5 rounded-full" style={{ backgroundColor: t.accent }} />}
                 </button>
               );
             })}
           </nav>
           <Link
             href={tab === "bots" ? "/addbot" : `/projects/new?type=${tab}`}
-            className="hidden h-9 shrink-0 items-center gap-1.5 rounded-xl border border-slate-800 px-3.5 text-xs font-bold text-slate-200 transition-colors hover:border-slate-600 hover:text-white md:flex"
+            className="hidden shrink-0 items-center gap-1.5 rounded-2xl bg-white px-5 text-sm font-extrabold text-black shadow-xl shadow-black/30 transition-colors hover:bg-zinc-200 md:flex"
           >
             <Plus className="h-4 w-4" />
             Publicar

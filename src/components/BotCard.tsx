@@ -1,14 +1,20 @@
 import Link from "next/link";
 import { Flame, Plus, Star } from "lucide-react";
 import type { Bot } from "@/lib/types";
-import { bannerGradient, categoriesOf } from "@/lib/categories";
+import { categoriesOf } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { isRecent } from "@/lib/dates";
 
 export function botAvatarUrl(id: string, avatar: string | null) {
-  return avatar
-    ? `https://cdn.discordapp.com/avatars/${id}/${avatar}.png?size=128`
-    : "https://cdn.discordapp.com/embed/avatars/0.png";
+  if (avatar) return `https://cdn.discordapp.com/avatars/${id}/${avatar}.png?size=128`;
+  // Same rule Discord uses for default avatars: (id >> 22) % 6.
+  let index = 0;
+  try {
+    index = Number((BigInt(id) / BigInt(4194304)) % BigInt(6));
+  } catch {
+    /* non-numeric id: keep the first default avatar */
+  }
+  return `https://cdn.discordapp.com/embed/avatars/${index}.png`;
 }
 
 export function botInviteUrl(id: string) {
@@ -51,10 +57,17 @@ export default function BotCard({ bot, rank }: BotCardProps) {
         className="absolute inset-0 z-[1] rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
       />
 
-      {/* Banner */}
-      <div className="relative h-20 shrink-0" style={{ background: bannerGradient(bot.tags) }}>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_-20%,rgba(255,255,255,0.18),transparent_60%)]" />
-        <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-zinc-950/80 to-transparent" />
+      {/* Banner: the bot's own avatar, blown up and blurred, so the colors always match it */}
+      <div className="relative h-20 shrink-0 overflow-hidden bg-zinc-900">
+        <img
+          src={botAvatarUrl(bot.id, bot.avatar)}
+          alt=""
+          aria-hidden
+          loading="lazy"
+          className="absolute inset-0 h-full w-full scale-150 object-cover opacity-80 blur-2xl saturate-150 transition-transform duration-500 group-hover:scale-[1.7]"
+        />
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-zinc-950 to-transparent" />
         <div className="absolute right-3 top-3 flex items-center gap-1.5">
           {isNewBot(bot) && (
             <span className="rounded-full border border-emerald-400/30 bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300 backdrop-blur">

@@ -83,8 +83,6 @@ export const CATEGORIES: Category[] = [
   },
 ];
 
-const DEFAULT_GRADIENT: [string, string] = ["#27272a", "#18181b"];
-
 export function normalizeTag(tag: string) {
   return tag.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
 }
@@ -108,9 +106,4 @@ export function categoriesOf(tags: string[] | undefined): Category[] {
     }
   }
   return out;
-}
-
-export function bannerGradient(tags: string[] | undefined) {
-  const [from, to] = categoriesOf(tags)[0]?.gradient ?? DEFAULT_GRADIENT;
-  return `linear-gradient(135deg, ${from} 0%, ${to} 100%)`;
 }
