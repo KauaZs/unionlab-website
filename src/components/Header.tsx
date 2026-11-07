@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Compass, Trophy, HelpCircle, LogIn, Coins, ShoppingBag, Crown, Megaphone, Bell, Trash2, Bot, Menu, Terminal } from "lucide-react";
+import { Compass, Trophy, HelpCircle, LogIn, Coins, ShoppingBag, Crown, Megaphone, Bell, Trash2, Bot, Menu, Terminal, Plus } from "lucide-react";
 import { Button } from "./ui/button";
+import { parseJson, startLogin } from "@/lib/api";
 
 interface HeaderProps {
   user: {
@@ -37,7 +38,7 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
     fetch("/api/public/notifications", {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => res.json())
+      .then(parseJson)
       .then((data) => {
         if (Array.isArray(data)) setNotifications(data);
       })
@@ -93,8 +94,11 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
   };
 
   const isTabActive = (tab: string) => {
-    if (tab === "home") return currentPath === "#/" || currentPath === "";
-    return currentPath === `#/${tab}`;
+    const path = currentPath || "/";
+    const isEdit = path.startsWith("/projects/") && path.endsWith("/edit");
+    if (tab === "home") return path === "/" || path.startsWith("/bot/") || (path.startsWith("/projects/p") && !isEdit);
+    if (tab === "publish") return path === "/addbot" || path === "/projects/new" || isEdit;
+    return path === `/${tab}` || path.startsWith(`/${tab}/`);
   };
 
   return (
@@ -114,10 +118,10 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
       </div>
       
       {/* Navigation tabs */}
-      <nav className="hidden lg:flex items-center gap-1.5 bg-slate-900/40 p-1 rounded-xl border border-slate-900/80">
+      <nav className="hidden xl:flex items-center gap-1.5 bg-slate-900/40 p-1 rounded-xl border border-slate-900/80">
         <button
           onClick={() => onNavigate("#/")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
             isTabActive("home")
               ? "bg-white text-black shadow-md shadow-white/5"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/30"
@@ -128,7 +132,7 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
         </button>
         <button
           onClick={() => onNavigate("#/rankings")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
             isTabActive("rankings")
               ? "bg-white text-black shadow-md shadow-white/5"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/30"
@@ -139,7 +143,7 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
         </button>
         <button
           onClick={() => onNavigate("#/store")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
             isTabActive("store")
               ? "bg-white text-black shadow-md shadow-white/5"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/30"
@@ -150,7 +154,7 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
         </button>
         <button
           onClick={() => onNavigate("#/vip")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
             isTabActive("vip")
               ? "bg-white text-black shadow-md shadow-white/5"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/30"
@@ -161,7 +165,7 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
         </button>
         <button
           onClick={() => onNavigate("#/codes")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
             isTabActive("codes")
               ? "bg-white text-black shadow-md shadow-white/5"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/30"
@@ -172,7 +176,7 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
         </button>
         <button
           onClick={() => onNavigate("#/outdoor")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
             isTabActive("outdoor")
               ? "bg-white text-black shadow-md shadow-white/5"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/30"
@@ -182,19 +186,19 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
           Outdoor
         </button>
         <button
-          onClick={() => onNavigate("#/addbot")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-            isTabActive("addbot")
+          onClick={() => onNavigate("/projects/new")}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
+            isTabActive("publish")
               ? "bg-white text-black shadow-md shadow-white/5"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/30"
           }`}
         >
-          <Bot className="w-4 h-4" />
-          Add Bot
+          <Plus className="w-4 h-4" />
+          Publicar
         </button>
         <button
           onClick={() => onNavigate("#/help")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
             isTabActive("help")
               ? "bg-white text-black shadow-md shadow-white/5"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/30"
@@ -306,8 +310,7 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
           <Button 
             variant="premium" 
             onClick={() => {
-              localStorage.setItem("redirect_target", window.location.hash);
-              window.location.href = "/api/auth/login";
+              startLogin();
             }}
             className="flex items-center gap-2"
           >
@@ -318,7 +321,7 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
         {/* Mobile Menu Button */}
         <button
           onClick={onOpenMobileMenu}
-          className="lg:hidden p-2.5 rounded-xl border border-slate-900 bg-slate-900/60 hover:bg-slate-900/90 text-slate-400 hover:text-white transition-all duration-200 active:scale-95 touch-manipulation"
+          className="xl:hidden p-2.5 rounded-xl border border-slate-900 bg-slate-900/60 hover:bg-slate-900/90 text-slate-400 hover:text-white transition-all duration-200 active:scale-95 touch-manipulation"
         >
           <Menu className="w-5 h-5" />
         </button>

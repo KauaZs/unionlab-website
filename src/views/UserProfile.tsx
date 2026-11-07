@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../co
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { startLogin } from "@/lib/api";
+import ProfileProjects from "@/components/ProfileProjects";
+import { useApp } from "@/context/AppContext";
 
 interface User {
   id: string;
@@ -58,18 +61,10 @@ interface UserProfileProps {
 }
 
 export default function UserProfile({ user, onLogout, showToast }: UserProfileProps) {
+  const { authToken } = useApp();
   const router = useRouter();
   const [data, setData] = useState<FullUserData | null>(null);
   const [loading, setLoading] = useState(true);
-
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <p className="text-slate-400 font-bold text-sm">Faça login para ver seu perfil.</p>
-        <Button variant="premium" onClick={() => window.location.href = "/api/auth/login"}>Login com Discord</Button>
-      </div>
-    );
-  }
 
   // Edit Description States
   const [isEditingAbout, setIsEditingAbout] = useState(false);
@@ -112,8 +107,10 @@ export default function UserProfile({ user, onLogout, showToast }: UserProfilePr
       });
   };
 
+  const userId = user?.id;
   useEffect(() => {
-    fetch(`/api/public/users/${user.id}`)
+    if (!userId) return;
+    fetch(`/api/public/users/${userId}`)
       .then((res) => {
         if (!res.ok) throw new Error("Erro ao buscar dados do perfil");
         return res.json();
@@ -127,7 +124,17 @@ export default function UserProfile({ user, onLogout, showToast }: UserProfilePr
         setData(null);
         setLoading(false);
       });
-  }, [user.id]);
+  }, [userId]);
+
+  // All hooks above run on every render; the logged-out view returns only after them.
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <p className="text-slate-400 font-bold text-sm">Faça login para ver seu perfil.</p>
+        <Button variant="premium" onClick={startLogin}>Login com Discord</Button>
+      </div>
+    );
+  }
 
   const getAvatarUrl = (id: string, hash: string | null) => {
     if (!hash) return "https://cdn.discordapp.com/embed/avatars/0.png";
@@ -377,6 +384,9 @@ export default function UserProfile({ user, onLogout, showToast }: UserProfilePr
               )}
             </CardContent>
           </Card>
+
+          {/* Projects (sites, games, music) */}
+          {authToken && <ProfileProjects mode="own" authToken={authToken} />}
 
           {/* Integration & Settings Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

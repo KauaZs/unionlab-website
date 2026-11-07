@@ -5,6 +5,7 @@ import { Bot, Send, Cpu } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { startLogin } from "@/lib/api";
 
 interface AddBotPageProps {
   user: {
@@ -112,8 +113,7 @@ export default function AddBotPage({ user, onUpdateUser, showToast }: AddBotPage
         </div>
         <Button
           onClick={() => {
-            localStorage.setItem("redirect_target", window.location.hash);
-            window.location.href = "/api/auth/login";
+            startLogin();
           }}
           variant="premium"
           className="w-full h-10 font-bold text-xs"

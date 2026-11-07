@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Trophy, Bot, Flame, Coins, ShieldAlert, Sparkles, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
+import { parseJson } from "@/lib/api";
 
 interface LeaderboardData {
   bots: {
@@ -34,7 +35,7 @@ export default function Leaderboard() {
 
   useEffect(() => {
     fetch("/api/public/leaderboard")
-      .then((res) => res.json())
+      .then(parseJson)
       .then((resData) => {
         setData(resData as LeaderboardData);
         setLoading(false);

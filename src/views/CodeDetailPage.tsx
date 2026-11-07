@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Star, Eye, Calendar, Copy, Lock, ShieldAlert, Trash2, Coins, Code, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -50,6 +51,7 @@ const LANGUAGES = [
 ];
 
 export default function CodeDetailPage({ id, user, refreshUser, showToast }: CodeDetailPageProps) {
+  const router = useRouter();
   const [codeData, setCodeData] = useState<CodeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [buying, setBuying] = useState(false);
@@ -179,7 +181,7 @@ export default function CodeDetailPage({ id, user, refreshUser, showToast }: Cod
         showToast(data.error || "Erro ao deletar código.", "error");
       } else {
         showToast("Código deletado com sucesso.", "success");
-        window.location.href = "/codes";
+        router.push("/codes");
       }
     } catch (err) {
       console.error(err);
@@ -220,7 +222,7 @@ export default function CodeDetailPage({ id, user, refreshUser, showToast }: Cod
       <div className="max-w-4xl mx-auto px-6 py-20 text-center space-y-4">
         <ShieldAlert className="w-12 h-12 text-red-500 mx-auto" />
         <h3 className="text-xl font-bold text-slate-300">Snippet não encontrado</h3>
-        <Button onClick={() => window.location.href = "/codes"} variant="outline" className="mt-4 border-slate-900 bg-slate-950/20 hover:bg-slate-900 text-xs">
+        <Button onClick={() => router.push("/codes")} variant="outline" className="mt-4 border-slate-900 bg-slate-950/20 hover:bg-slate-900 text-xs">
           Voltar para codes
         </Button>
       </div>
@@ -233,7 +235,7 @@ export default function CodeDetailPage({ id, user, refreshUser, showToast }: Cod
     <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
       {/* Back button */}
       <button
-        onClick={() => window.location.href = "/codes"}
+        onClick={() => router.push("/codes")}
         className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-350 transition-colors uppercase tracking-wider outline-none select-none"
       >
         <ArrowLeft className="w-3.5 h-3.5" />

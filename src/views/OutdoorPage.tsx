@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
+import { parseJson } from "@/lib/api";
 
 interface OutdoorBot {
   id: string;
@@ -60,7 +61,7 @@ export default function OutdoorPage({ user, onUpdateUser, showToast }: OutdoorPa
     fetch("/api/public/outdoor", {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => res.json())
+      .then(parseJson)
       .then((data) => {
         setUserBots(data.userBots || []);
         setQueue(data.queue || []);

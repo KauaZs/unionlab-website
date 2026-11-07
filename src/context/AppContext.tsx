@@ -4,7 +4,8 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Header from "@/components/Header";
 import CelebrationModal from "@/components/CelebrationModal";
-import { Compass, Trophy, ShoppingBag, Crown, Megaphone, Bot, HelpCircle, X, Coins, Terminal } from "lucide-react";
+import { Compass, Trophy, ShoppingBag, Crown, Megaphone, Bot, HelpCircle, X, Coins, Terminal, Plus } from "lucide-react";
+import { parseJson } from "@/lib/api";
 
 interface User {
   id: string;
@@ -13,6 +14,7 @@ interface User {
   unicoins: number;
   cooldowns?: {
     voteBot?: number;
+    voteProject?: number;
     rep?: number;
   };
 }
@@ -126,7 +128,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
 
     fetch("/api/public/config")
-      .then((res) => res.json())
+      .then(parseJson)
       .then((data) => {
         if (data.recaptchaSiteKey) {
           setRecaptchaSiteKey(data.recaptchaSiteKey);
@@ -221,11 +223,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           <>
             {/* Backdrop */}
             <div
-              className="mobile-drawer-backdrop lg:hidden"
+              className="mobile-drawer-backdrop xl:hidden"
               onClick={() => setIsMobileMenuOpen(false)}
             />
             {/* Drawer Panel */}
-            <div className="mobile-drawer p-6 space-y-6 flex flex-col justify-between shadow-2xl animate-in slide-in-from-right duration-200 lg:hidden">
+            <div className="mobile-drawer p-6 space-y-6 flex flex-col justify-between shadow-2xl animate-in slide-in-from-right duration-200 xl:hidden">
               <div className="space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-900 pb-4">
@@ -276,9 +278,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     { id: "rankings", label: "Rankings", icon: Trophy, path: "/rankings" },
                     { id: "store", label: "Loja", icon: ShoppingBag, path: "/store" },
                     { id: "vip", label: "VIP", icon: Crown, path: "/vip" },
-                    { id: "codes", label: "codes", icon: Terminal, path: "/codes" },
+                    { id: "codes", label: "Codes", icon: Terminal, path: "/codes" },
                     { id: "outdoor", label: "Outdoor", icon: Megaphone, path: "/outdoor" },
-                    { id: "addbot", label: "Add Bot", icon: Bot, path: "/addbot" },
+                    { id: "publish", label: "Publicar", icon: Plus, path: "/projects/new" },
                     { id: "help", label: "Ajuda & FAQ", icon: HelpCircle, path: "/help" },
                   ].map((item) => {
                     const Icon = item.icon;

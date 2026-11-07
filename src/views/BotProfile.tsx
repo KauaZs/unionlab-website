@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
+import { startLogin } from "@/lib/api";
+import Markdown from "@/components/Markdown";
 
 interface BotCommand {
   name: string;
@@ -82,58 +84,6 @@ const parseLocalDate = (dateStr: string) => {
   if (!dateStr) return new Date();
   const cleanStr = dateStr.endsWith("Z") ? dateStr.slice(0, -1) : dateStr;
   return new Date(cleanStr);
-};
-
-const parseMarkdownToHtml = (text: string) => {
-  if (!text) return "";
-  let html = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
-  // Bold (**text** or __text__)
-  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/__(.*?)__/g, "<strong>$1</strong>");
-
-  // Italic (*text* or _text_)
-  html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
-  html = html.replace(/_(.*?)_/g, "<em>$1</em>");
-
-  // Inline Code (`code`)
-  html = html.replace(/`(.*?)`/g, "<code class='bg-slate-900 border border-slate-800/80 px-1.5 py-0.5 rounded text-cyan-400 font-mono text-[11px]'>$1</code>");
-
-  // Code Blocks (```code```)
-  html = html.replace(/```([\s\S]*?)```/g, "<pre class='bg-slate-900 border border-slate-850 p-3 rounded-xl font-mono text-xs text-slate-300 overflow-x-auto my-2 whitespace-pre-wrap'><code>$1</code></pre>");
-
-  // Bullet Points (- item or * item)
-  html = html.replace(/^\s*-\s+(.*?)$/gm, "<li class='list-disc ml-5 text-slate-400'>$1</li>");
-  html = html.replace(/^\s*\*\s+(.*?)$/gm, "<li class='list-disc ml-5 text-slate-400'>$1</li>");
-
-  // Line breaks
-  html = html.replace(/\n/g, "<br />");
-
-  return html;
-};
-
-const parseMarkdownToHtmlWidget = (text: string) => {
-  if (!text) return "";
-  let html = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
-  // Bold (**text** or __text__)
-  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/__(.*?)__/g, "<strong>$1</strong>");
-
-  // Italic (*text* or _text_)
-  html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
-  html = html.replace(/_(.*?)_/g, "<em>$1</em>");
-
-  // Inline Code (`code`)
-  html = html.replace(/`(.*?)`/g, "<code class='bg-slate-900 border border-slate-800/80 px-1 py-0.5 rounded text-cyan-400 font-mono text-[10px]'>$1</code>");
-
-  return html;
 };
 
 export default function BotProfile({
@@ -290,14 +240,9 @@ export default function BotProfile({
               Sobre o Bot
             </CardTitle>
           </CardHeader>
-          <CardContent 
-            className="px-6 pb-6 text-slate-300 text-sm leading-relaxed"
-            dangerouslySetInnerHTML={{ 
-              __html: botDetail.description 
-                ? parseMarkdownToHtml(botDetail.description) 
-                : "Nenhuma descrição informada." 
-            }}
-          />
+          <CardContent className="px-6 pb-6 text-slate-300 text-sm leading-relaxed">
+            {botDetail.description ? <Markdown>{botDetail.description}</Markdown> : "Nenhuma descrição informada."}
+          </CardContent>
         </Card>
 
         {latestChangelog && (
@@ -317,10 +262,9 @@ export default function BotProfile({
                   {latestChangelog.title}
                 </span>
                 <span className="text-slate-700 text-xs shrink-0">&bull;</span>
-                <div 
-                  className="text-slate-400 text-xs truncate font-medium flex-1 min-w-0"
-                  dangerouslySetInnerHTML={{ __html: parseMarkdownToHtmlWidget(latestChangelog.content) }}
-                />
+                <div className="text-slate-400 text-xs truncate font-medium flex-1 min-w-0">
+                  <Markdown inline>{latestChangelog.content}</Markdown>
+                </div>
               </div>
             </div>
 
@@ -447,10 +391,9 @@ export default function BotProfile({
                           </div>
                           
                           <h4 className="text-sm font-extrabold text-white">{log.title}</h4>
-                          <div 
-                            className="text-slate-400 text-xs leading-relaxed bg-slate-950/40 border border-slate-950/80 rounded-2xl p-4 mt-2"
-                            dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(log.content) }}
-                          />
+                          <Markdown className="text-slate-400 text-xs leading-relaxed bg-slate-950/40 border border-slate-950/80 rounded-2xl p-4 mt-2">
+                            {log.content}
+                          </Markdown>
                         </div>
                       </div>
                     ))}
@@ -611,8 +554,7 @@ export default function BotProfile({
             className="w-full h-12 text-sm font-bold" 
             variant="premium"
             onClick={() => {
-              localStorage.setItem("redirect_target", window.location.hash);
-              window.location.href = "/api/auth/login";
+              startLogin();
             }}
           >
             Faça Login para Votar

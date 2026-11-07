@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from "react";
 import BotProfile from "@/views/BotProfile";
 import { useApp } from "@/context/AppContext";
+import { parseJson } from "@/lib/api";
 
 interface BotCommand {
   name: string;
@@ -71,7 +72,7 @@ export default function BotDetailClient({ params }: { params: Promise<{ id: stri
       return res.json();
     });
 
-    const fetchFeedbacks = fetch(`/api/public/bots/${botId}/feedbacks`).then((res) => res.json());
+    const fetchFeedbacks = fetch(`/api/public/bots/${botId}/feedbacks`).then(parseJson);
 
     Promise.all([fetchDetail, fetchFeedbacks])
       .then(([botData, fbData]) => {

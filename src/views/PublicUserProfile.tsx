@@ -8,6 +8,8 @@ import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import ReCaptcha from "../components/ReCaptcha";
+import { parseJson } from "@/lib/api";
+import ProfileProjects from "@/components/ProfileProjects";
 
 interface Streak {
   type: string;
@@ -152,7 +154,7 @@ export default function PublicUserProfile({ userId, currentUser, showToast, show
         
         // Refresh profile data
         fetch(`/api/public/users/${userId}`)
-          .then(res => res.json())
+          .then(parseJson)
           .then(resData => setData(resData as UserProfileData));
       })
       .catch((err) => {
@@ -453,6 +455,8 @@ export default function PublicUserProfile({ userId, currentUser, showToast, show
               )}
             </CardContent>
           </Card>
+
+          <ProfileProjects mode="public" ownerId={userId} ownerName={data.username} />
 
           {/* Reputations Received wall */}
           <Card className="border border-slate-900 bg-slate-950/10">

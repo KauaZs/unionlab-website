@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   } catch (e) {
     return {
-      title: "codes - Union Lab",
+      title: "Codes - Union Lab",
       description: "Detalhes do snippet de código no Union Lab.",
     };
   }

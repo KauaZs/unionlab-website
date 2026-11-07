@@ -1,43 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, Trophy, Sparkles, Clock, Megaphone, ExternalLink, Bot, Users, Flame } from "lucide-react";
-import BotCard from "../components/BotCard";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import Link from "next/link";
+import { Search, Bot, Users, Flame, X, Plus } from "lucide-react";
 import EventBanner from "../components/EventBanner";
+import type { ActiveOutdoor } from "../components/OutdoorSpotlight";
 import { Input } from "../components/ui/input";
-import { Badge } from "../components/ui/badge";
-
-interface Bot {
-  id: string;
-  username: string;
-  avatar: string | null;
-  prefix: string;
-  language: string;
-  description: string;
-  votes: number;
-  rating?: number;
-  feedbackCount?: number;
-}
-
-interface EventData {
-  active: boolean;
-  key: string;
-  type: string;
-  name: string;
-  multiplier: number;
-  progress?: {
-    current: number;
-    target: number;
-  } | null;
-}
+import BotsExplorer from "./explore/BotsExplorer";
+import ProjectsExplorer from "./explore/ProjectsExplorer";
+import { fetchJson } from "@/lib/api";
+import { BOT_TAB, PROJECT_TYPES, TAB_SLUGS, type ExploreTab } from "@/lib/projectTypes";
+import { cn } from "@/lib/utils";
+import type { Bot as BotData, EventData, Project, ProjectType } from "@/lib/types";
 
 interface HomeProps {
-  bots: Bot[];
-  search: string;
-  onSearchChange: (val: string) => void;
-  loadingBots: boolean;
-  activeEvent: EventData | null;
-  onBotClick: (id: string) => void;
+  /** Data rendered on the server; null when the server couldn't reach the API. */
+  initialBots: BotData[] | null;
+  initialProjects: Project[] | null;
+  initialEvent: EventData | null;
+  initialTab: ExploreTab;
 }
 
 interface GlobalStats {
@@ -46,238 +27,194 @@ interface GlobalStats {
   totalVotes: number;
 }
 
-export default function Home({ bots, search, onSearchChange, loadingBots, activeEvent, onBotClick }: HomeProps) {
-  const [activeTab, setActiveTab] = useState<"popular" | "rated" | "recent">("popular");
-  const [stats, setStats] = useState<GlobalStats | null>(null);
-  const [activeOutdoor, setActiveOutdoor] = useState<any | null>(null);
+/** Fetches a list on the client only when the server didn't provide it. */
+function useList<T>(url: string, initial: T[] | null) {
+  const [items, setItems] = useState<T[]>(initial ?? []);
+  const [loading, setLoading] = useState(initial === null);
+  const [error, setError] = useState(false);
+
+  const load = useCallback(() => {
+    fetchJson<T[]>(url)
+      .then((data) => setItems(Array.isArray(data) ? data : []))
+      .catch((err) => {
+        console.error(`Error loading ${url}:`, err);
+        setError(true);
+      })
+      .finally(() => setLoading(false));
+  }, [url]);
 
   useEffect(() => {
-    fetch("/api/public/stats")
-      .then((res) => res.json())
-      .then((data) => setStats(data as GlobalStats))
-      .catch((err) => console.error("Error loading stats:", err));
+    if (initial === null) load();
+  }, [initial, load]);
 
-    fetch("/api/public/outdoor/active")
-      .then((res) => res.json())
+  const retry = () => {
+    setLoading(true);
+    setError(false);
+    load();
+  };
+
+  return { items, loading, error, retry };
+}
+
+const formatNumber = (n: number) => n.toLocaleString("pt-BR");
+
+export default function Home({ initialBots, initialProjects, initialEvent, initialTab }: HomeProps) {
+  const bots = useList<BotData>("/api/public/bots", initialBots);
+  const projects = useList<Project>("/api/public/projects", initialProjects);
+  const [tab, setTab] = useState<ExploreTab>(initialTab);
+  const [search, setSearch] = useState("");
+  const [activeEvent, setActiveEvent] = useState<EventData | null>(initialEvent);
+  const [stats, setStats] = useState<GlobalStats | null>(null);
+  const [activeOutdoor, setActiveOutdoor] = useState<ActiveOutdoor | null>(null);
+
+  useEffect(() => {
+    if (initialEvent === null) {
+      fetchJson<EventData>("/api/public/event")
+        .then(setActiveEvent)
+        .catch((err) => console.error("Error loading event:", err));
+    }
+    fetchJson<GlobalStats>("/api/public/stats")
+      .then(setStats)
+      .catch((err) => console.error("Error loading stats:", err));
+    fetchJson<ActiveOutdoor>("/api/public/outdoor/active")
       .then((data) => {
-        if (data.active) {
-          setActiveOutdoor(data);
-        }
+        if (data.active) setActiveOutdoor(data);
       })
       .catch((err) => console.error("Error loading active outdoor:", err));
-  }, []);
+  }, [initialEvent]);
 
-  const safeBots = Array.isArray(bots) ? bots : [];
-  const filteredBots = safeBots.filter(
-    (bot) =>
-      bot.username.toLowerCase().includes(search.toLowerCase()) ||
-      bot.description.toLowerCase().includes(search.toLowerCase()) ||
-      bot.language.toLowerCase().includes(search.toLowerCase())
-  );
+  const selectTab = (next: ExploreTab) => {
+    setTab(next);
+    // Keep the tab shareable without a server round-trip.
+    const url = next === "bots" ? "/" : `/?tab=${TAB_SLUGS[next]}`;
+    window.history.replaceState(null, "", url);
+  };
 
-  const sortedBots = [...filteredBots].sort((a, b) => {
-    if (activeTab === "popular") {
-      return b.votes - a.votes;
-    }
-    if (activeTab === "rated") {
-      const ratingA = a.rating || 0;
-      const ratingB = b.rating || 0;
-      return ratingB - ratingA;
-    }
-    // "recent" - sort by snowflake ID
-    return b.id.localeCompare(a.id);
-  });
+  const projectCounts = useMemo(() => {
+    const counts: Partial<Record<ProjectType, number>> = {};
+    for (const p of projects.items) counts[p.type] = (counts[p.type] ?? 0) + 1;
+    return counts;
+  }, [projects.items]);
 
-  const globalTopBot = safeBots.length > 0
-    ? [...safeBots].sort((a, b) => b.votes - a.votes)[0]
-    : null;
-  const topBotId = globalTopBot && globalTopBot.votes > 0 ? globalTopBot.id : null;
+  const tabs = [
+    { id: "bots" as ExploreTab, label: BOT_TAB.plural, icon: BOT_TAB.icon, count: bots.items.length, text: "text-white" },
+    ...PROJECT_TYPES.map((t) => ({ id: t.id as ExploreTab, label: t.plural, icon: t.icon, count: projectCounts[t.id] ?? 0, text: t.text })),
+  ];
+
+  const searchPlaceholder =
+    tab === "bots" ? "Pesquise bots por nome, categoria, linguagem..." : `Pesquise ${PROJECT_TYPES.find((t) => t.id === tab)!.plural.toLowerCase()} por nome, tag, autor...`;
 
   return (
-    <div className="space-y-12">
-      {/* Hero Section */}
-      <div className="flex flex-col items-center text-center space-y-6 max-w-2xl mx-auto py-8">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight font-sans">
-          Encontre os melhores <br />
-          <span className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
-            bots para o seu servidor.
-          </span>
+    <div className="space-y-10">
+      {/* Hero */}
+      <section className="mx-auto flex max-w-2xl flex-col items-center space-y-6 py-8 text-center">
+        <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white md:text-5xl">
+          Descubra o que a <br />
+          <span className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">comunidade está criando.</span>
         </h1>
-        <p className="text-slate-400 text-base md:text-lg font-medium leading-relaxed">
-          Navegue pelas criações inovadoras de nossa comunidade de desenvolvedores, apoie seus favoritos e ganhe unicoins avaliando o bot!
+        <p className="text-base font-medium leading-relaxed text-slate-400 md:text-lg">
+          Bots, sites, jogos e músicas feitos por desenvolvedores e artistas da Union Lab. Apoie seus favoritos e ganhe unicoins votando!
         </p>
-        
-        {/* Search input wrapped in styled container */}
-        <div className="relative w-full max-w-xl group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-500 group-focus-within:text-zinc-300 transition-colors" />
+
+        <div className="group relative w-full max-w-xl">
+          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-zinc-300" />
           <Input
             type="text"
-            placeholder="Pesquise por nome, linguagem, descrição..."
-            className="pl-12 pr-4 h-12 shadow-lg shadow-black/20"
+            placeholder={searchPlaceholder}
+            className="h-12 pl-11 pr-10 shadow-lg shadow-black/20"
             value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
           />
-        </div>
-
-        {/* Stats Counter Widget */}
-        {stats && (
-          <div className="grid grid-cols-3 gap-2 sm:gap-4 bg-zinc-950/20 border border-slate-900 rounded-2xl p-4 text-center w-full max-w-xl mx-auto md:mx-0">
-            <div className="space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider flex items-center justify-center gap-1">
-                <Bot className="w-3.5 h-3.5 text-zinc-400 hidden sm:inline" />
-                Bots
-              </span>
-              <span className="block text-sm font-black text-white">{stats.totalBots}</span>
-            </div>
-            <div className="space-y-1 border-x border-slate-900">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider flex items-center justify-center gap-1">
-                <Users className="w-3.5 h-3.5 text-zinc-400 hidden sm:inline" />
-                Usuários
-              </span>
-              <span className="block text-sm font-black text-white">{stats.totalUsers}</span>
-            </div>
-            <div className="space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider flex items-center justify-center gap-1">
-                <Flame className="w-3.5 h-3.5 text-zinc-400 hidden sm:inline" />
-                Votos
-              </span>
-              <span className="block text-sm font-black text-white">{stats.totalVotes}</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {activeEvent && activeEvent.active && (
-        <EventBanner 
-          name={activeEvent.name} 
-          multiplier={activeEvent.multiplier} 
-          eventKey={activeEvent.key}
-          progress={activeEvent.progress}
-        />
-      )}
-
-      {/* Outdoor Highlight Banner Card */}
-      {activeOutdoor && (
-        <div 
-          className="relative bg-zinc-950/40 rounded-3xl border border-slate-900 overflow-hidden flex flex-col md:flex-row items-center md:items-stretch justify-between p-6 gap-6 shadow-2xl"
-          style={{ borderLeft: `4px solid ${activeOutdoor.hexColor || '#FFC800'}` }}
-        >
-          {/* Main Info */}
-          <div className="flex flex-col md:flex-row items-center gap-5 relative z-10">
-            <img 
-              src={activeOutdoor.avatar ? `https://cdn.discordapp.com/avatars/${activeOutdoor.botId}/${activeOutdoor.avatar}.png` : "https://cdn.discordapp.com/embed/avatars/0.png"} 
-              alt={activeOutdoor.username} 
-              className="w-16 h-16 rounded-2xl border border-slate-900 object-cover shrink-0 shadow-lg"
-            />
-            <div className="space-y-1.5 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-2">
-                <span className="text-white font-black text-base">{activeOutdoor.username}</span>
-                <Badge variant="default" className="bg-amber-500/10 border-amber-500/20 text-amber-400 text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
-                  <Megaphone className="w-3 h-3 text-amber-400" />
-                  Destaque do Dia
-                </Badge>
-              </div>
-              <p className="text-slate-400 text-xs font-semibold leading-relaxed max-w-xl">
-                {activeOutdoor.description}
-              </p>
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1">
-                <Badge variant="default" className="text-[9px] bg-slate-900 border-slate-800 text-slate-300 font-bold">
-                  lang: {activeOutdoor.language}
-                </Badge>
-                <Badge variant="default" className="text-[9px] bg-slate-900 border-slate-800 text-slate-300 font-bold">
-                  prefix: {activeOutdoor.prefix}
-                </Badge>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-row md:flex-col justify-center gap-3 shrink-0 items-center md:items-end w-full md:w-auto mt-2 md:mt-0 relative z-10">
-            <a 
-              href={`https://discord.com/oauth2/authorize?client_id=${activeOutdoor.botId}&permissions=0&scope=bot%20applications.commands`}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-center gap-1.5 px-4 h-9 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all duration-150 shadow-md w-1/2 md:w-40"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              Adicionar Bot
-            </a>
+          {search && (
             <button
-              onClick={() => onBotClick(activeOutdoor.botId)}
-              className="flex items-center justify-center gap-1.5 px-4 h-9 rounded-xl text-xs font-bold bg-zinc-900 border border-zinc-800 text-slate-200 hover:text-white hover:bg-zinc-800 transition-all duration-150 w-1/2 md:w-40"
+              onClick={() => setSearch("")}
+              aria-label="Limpar pesquisa"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:text-white"
             >
-              Ver Detalhes
+              <X className="h-4 w-4" />
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Sections Tab Bar */}
-      <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 border-b border-slate-900 pb-4">
-        <button
-          onClick={() => setActiveTab("popular")}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
-            activeTab === "popular"
-              ? "bg-white text-black shadow-md"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/30"
-          }`}
-        >
-          <Trophy className="w-3.5 h-3.5" />
-          Bots Populares
-        </button>
-        <button
-          onClick={() => setActiveTab("rated")}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
-            activeTab === "rated"
-              ? "bg-white text-black shadow-md"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/30"
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          Boa Avaliação
-        </button>
-        <button
-          onClick={() => setActiveTab("recent")}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
-            activeTab === "recent"
-              ? "bg-white text-black shadow-md"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/30"
-          }`}
-        >
-          <Clock className="w-3.5 h-3.5" />
-          Recém Adicionados
-        </button>
-      </div>
-
-      {loadingBots ? (
-        <div className="flex items-center justify-center min-h-[300px]">
-          <span className="w-10 h-10 border-4 border-slate-900 border-b-white rounded-full animate-spin"></span>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {sortedBots.length === 0 ? (
-            <div className="col-span-full py-16 text-center text-slate-500 font-medium">
-              Nenhum bot encontrado para os termos pesquisados.
-            </div>
-          ) : (
-            sortedBots.map((bot) => (
-              <BotCard
-                key={bot.id}
-                id={bot.id}
-                username={bot.username}
-                avatar={bot.avatar}
-                prefix={bot.prefix}
-                language={bot.language}
-                description={bot.description}
-                votes={bot.votes}
-                rating={bot.rating}
-                feedbackCount={bot.feedbackCount}
-                onClick={() => onBotClick(bot.id)}
-                isTop1={bot.id === topBotId}
-              />
-            ))
           )}
         </div>
+
+        {stats && (
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-semibold text-slate-500">
+            <span className="flex items-center gap-1.5">
+              <Bot className="h-3.5 w-3.5 text-zinc-400" />
+              <strong className="font-black text-white">{formatNumber(stats.totalBots)}</strong> bots
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-zinc-400" />
+              <strong className="font-black text-white">{formatNumber(stats.totalUsers)}</strong> usuários
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Flame className="h-3.5 w-3.5 text-orange-500" />
+              <strong className="font-black text-white">{formatNumber(stats.totalVotes)}</strong> votos
+            </span>
+          </div>
+        )}
+      </section>
+
+      {activeEvent?.active && (
+        <EventBanner name={activeEvent.name} multiplier={activeEvent.multiplier} eventKey={activeEvent.key} progress={activeEvent.progress} />
+      )}
+
+      {/* Explore tabs */}
+      <div className="sticky top-20 z-30 -mx-4 border-b border-slate-900 bg-[#050507]/85 px-4 py-3 backdrop-blur-md sm:mx-0 sm:px-0">
+        <div className="flex items-center justify-between gap-3">
+          <nav className="flex gap-1.5 overflow-x-auto [scrollbar-width:none]" aria-label="Tipos de projeto">
+            {tabs.map((t) => {
+              const Icon = t.icon;
+              const active = tab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => selectTab(t.id)}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-bold transition-all duration-200",
+                    active ? "bg-white text-black shadow-md" : "text-slate-400 hover:bg-slate-900/50 hover:text-white"
+                  )}
+                >
+                  <Icon className={cn("h-4 w-4", !active && t.text)} />
+                  {t.label}
+                  <span className={cn("rounded-md px-1.5 text-[10px] font-black", active ? "bg-black/10 text-zinc-700" : "bg-slate-900 text-slate-500")}>
+                    {t.count}
+                  </span>
+                </button>
+              );
+            })}
+          </nav>
+          <Link
+            href={tab === "bots" ? "/addbot" : `/projects/new?type=${tab}`}
+            className="hidden h-9 shrink-0 items-center gap-1.5 rounded-xl border border-slate-800 px-3.5 text-xs font-bold text-slate-200 transition-colors hover:border-slate-600 hover:text-white md:flex"
+          >
+            <Plus className="h-4 w-4" />
+            Publicar
+          </Link>
+        </div>
+      </div>
+
+      {tab === "bots" ? (
+        <BotsExplorer
+          bots={bots.items}
+          loading={bots.loading}
+          error={bots.error}
+          onRetry={bots.retry}
+          search={search}
+          onClearSearch={() => setSearch("")}
+          outdoor={activeOutdoor}
+        />
+      ) : (
+        <ProjectsExplorer
+          key={tab}
+          type={tab}
+          projects={projects.items}
+          loading={projects.loading}
+          error={projects.error}
+          onRetry={projects.retry}
+          search={search}
+          onClearSearch={() => setSearch("")}
+        />
       )}
     </div>
   );

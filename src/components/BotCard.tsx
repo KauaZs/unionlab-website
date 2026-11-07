@@ -1,96 +1,147 @@
-"use client";
+import Link from "next/link";
+import { Flame, Plus, Star } from "lucide-react";
+import type { Bot } from "@/lib/types";
+import { bannerGradient, categoriesOf } from "@/lib/categories";
+import { cn } from "@/lib/utils";
+import { isRecent } from "@/lib/dates";
 
-import { Flame, Code2, ArrowRight } from "lucide-react";
-import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
-import { Badge } from "./ui/badge";
-
-interface BotCardProps {
-  id: string;
-  username: string;
-  avatar: string | null;
-  prefix: string;
-  language: string;
-  description: string;
-  votes: number;
-  rating?: number;
-  feedbackCount?: number;
-  onClick: () => void;
-  isTop1?: boolean;
+export function botAvatarUrl(id: string, avatar: string | null) {
+  return avatar
+    ? `https://cdn.discordapp.com/avatars/${id}/${avatar}.png?size=128`
+    : "https://cdn.discordapp.com/embed/avatars/0.png";
 }
 
-export default function BotCard({ id, username, avatar, prefix, language, description, votes, rating, feedbackCount, onClick, isTop1 }: BotCardProps) {
-  const getAvatarUrl = (botId: string, avatarHash: string | null) => {
-    if (!avatarHash) return "https://cdn.discordapp.com/embed/avatars/0.png";
-    return `https://cdn.discordapp.com/avatars/${botId}/${avatarHash}.png`;
-  };
+export function botInviteUrl(id: string) {
+  return `https://discord.com/oauth2/authorize?client_id=${id}&permissions=0&scope=bot%20applications.commands`;
+}
+
+export function isNewBot(bot: Bot) {
+  return isRecent(bot.addedAt);
+}
+
+const RANK_STYLES: Record<number, string> = {
+  1: "bg-amber-400 text-black shadow-amber-500/30",
+  2: "bg-zinc-200 text-black shadow-white/10",
+  3: "bg-orange-700 text-white shadow-orange-700/30",
+};
+
+interface BotCardProps {
+  bot: Bot;
+  /** Global position by votes (1-based); top 3 get a medal. */
+  rank?: number;
+}
+
+export default function BotCard({ bot, rank }: BotCardProps) {
+  const categories = categoriesOf(bot.tags);
+  const extraTags = (bot.tags ?? []).length - categories.length;
+  const hasRating = !!bot.rating && !!bot.feedbackCount;
+  const medal = rank && rank <= 3 ? rank : null;
 
   return (
-    <Card 
-      onClick={onClick}
-      className={`cursor-pointer group flex flex-col justify-between overflow-hidden relative transition-all duration-300 ${
-        isTop1 
-          ? "border-amber-500/30 bg-gradient-to-b from-amber-500/5 to-slate-950/20 hover:border-amber-500/50 shadow-xl shadow-amber-500/[0.02]" 
-          : "hover:border-slate-800"
-      }`}
-    >
-      {isTop1 && (
-        <div className="absolute top-3 right-3 flex items-center gap-1 bg-amber-500 text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-lg shadow-amber-500/20 z-10 tracking-wider">
-          <span>🏆 Top #1</span>
-        </div>
+    <article
+      className={cn(
+        "group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-zinc-950/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/50",
+        medal === 1 ? "border-amber-500/30 hover:border-amber-500/50" : "border-slate-900 hover:border-slate-700"
       )}
-      <div>
-        <CardHeader className="flex flex-row items-center gap-4 p-6">
-          <img 
-            className={`w-16 h-16 rounded-2xl border object-cover shadow-lg group-hover:scale-105 transition-transform duration-300 ${
-              isTop1 ? "border-amber-500/30 bg-amber-500/5" : "border-slate-900 bg-slate-900"
-            }`} 
-            src={getAvatarUrl(id, avatar)} 
-            alt={username} 
+    >
+      {/* Whole card is a link; inner actions sit above it with z-10. */}
+      <Link
+        href={`/bot/${bot.id}`}
+        aria-label={`Ver perfil de ${bot.username}`}
+        className="absolute inset-0 z-0 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+      />
+
+      {/* Banner */}
+      <div className="relative h-20 shrink-0" style={{ background: bannerGradient(bot.tags) }}>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_-20%,rgba(255,255,255,0.18),transparent_60%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-zinc-950/80 to-transparent" />
+        <div className="absolute right-3 top-3 flex items-center gap-1.5">
+          {isNewBot(bot) && (
+            <span className="rounded-full border border-emerald-400/30 bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300 backdrop-blur">
+              Novo
+            </span>
+          )}
+          {medal && (
+            <span className={cn("rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider shadow-lg", RANK_STYLES[medal])}>
+              #{medal}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="relative flex flex-1 flex-col px-5 pb-4">
+        {/* Avatar overlaps the banner; name sits below it */}
+        <div className="-mt-8">
+          <img
+            src={botAvatarUrl(bot.id, bot.avatar)}
+            alt=""
+            className="h-16 w-16 shrink-0 rounded-2xl border-4 border-zinc-950 bg-zinc-900 object-cover shadow-xl transition-transform duration-300 group-hover:scale-105"
           />
-          <div className="flex flex-col gap-1.5">
-            <h3 className="font-bold text-lg text-white group-hover:text-zinc-200 transition-colors duration-200">
-              {username}
-            </h3>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Badge variant="default" className="w-fit">
-                {language}
-              </Badge>
-              {rating !== undefined && feedbackCount !== undefined && feedbackCount > 0 && (
-                <div className="flex items-center gap-1 text-[10px] text-amber-400 font-bold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
-                  <span>⭐ {rating.toFixed(1)}</span>
-                  <span className="text-[9px] text-amber-500/80 font-medium">({feedbackCount})</span>
-                </div>
+          <div className="mt-2 min-w-0">
+            <h3 className="truncate text-base font-extrabold leading-tight text-white">{bot.username}</h3>
+            <div className="mt-1 flex items-center gap-2 text-[11px] font-semibold text-slate-500">
+              <span>{bot.language}</span>
+              {hasRating && (
+                <>
+                  <span className="text-slate-700">•</span>
+                  <span className="flex items-center gap-0.5 text-amber-400">
+                    <Star className="h-3 w-3 fill-amber-400" />
+                    {bot.rating!.toFixed(1)}
+                    <span className="font-medium text-slate-500">({bot.feedbackCount})</span>
+                  </span>
+                </>
               )}
             </div>
           </div>
-        </CardHeader>
-        
-        <CardContent className="px-6 pb-6">
-          <p className="text-slate-400 text-sm leading-relaxed line-clamp-2 min-height-[40px]">
-            {description}
-          </p>
-        </CardContent>
-      </div>
+        </div>
 
-      <CardFooter className="px-6 py-4 border-t border-slate-900/50 bg-slate-900/50 flex flex-col gap-3.5">
-        <div className="flex justify-between items-center w-full text-xs text-slate-400 font-medium">
-          <div className="flex items-center gap-1.5">
-            <Code2 className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Prefixo: <code className="bg-slate-900/60 text-zinc-200 border border-slate-800 px-1.5 py-0.5 rounded font-mono font-bold">{prefix}</code></span>
+        <p className="mt-3 line-clamp-2 min-h-[2.5rem] text-[13px] leading-5 text-slate-400">
+          {bot.description || "Sem descrição."}
+        </p>
+
+        {/* Categories */}
+        {(categories.length > 0 || extraTags > 0) && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {categories.slice(0, 3).map((c) => {
+              const Icon = c.icon;
+              return (
+                <span key={c.id} className={cn("flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold", c.text, c.bg, c.border)}>
+                  <Icon className="h-3 w-3" />
+                  {c.label}
+                </span>
+              );
+            })}
+            {categories.length > 3 || extraTags > 0 ? (
+              <span className="rounded-full border border-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-500">
+                +{Math.max(0, categories.length - 3) + Math.max(0, extraTags)}
+              </span>
+            ) : null}
           </div>
-          <div className="flex items-center gap-1 text-slate-300 font-bold">
-            <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500/20" />
-            <span>{votes} votos</span>
+        )}
+
+        <div className="h-4" />
+        {/* Footer */}
+        <div className="mt-auto flex items-center justify-between gap-3 border-t border-slate-900 pt-3.5">
+          <div className="flex items-center gap-3 text-xs font-bold text-slate-300">
+            <span className="flex items-center gap-1" title="Votos">
+              <Flame className="h-3.5 w-3.5 fill-orange-500/20 text-orange-500" />
+              {bot.votes}
+            </span>
+            <code className="rounded border border-slate-800 bg-slate-900/60 px-1.5 py-0.5 font-mono text-[11px] text-zinc-300" title="Prefixo">
+              {bot.prefix}
+            </code>
           </div>
+          <a
+            href={botInviteUrl(bot.id)}
+            target="_blank"
+            rel="noreferrer"
+            className="relative z-10 flex h-8 items-center gap-1 rounded-lg bg-white px-3 text-[11px] font-extrabold text-black transition-colors hover:bg-zinc-200"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Adicionar
+          </a>
         </div>
-        
-        <div className="flex justify-end w-full border-t border-slate-900/30 pt-3">
-          <span className="flex items-center gap-1 text-xs font-bold text-zinc-400 group-hover:text-zinc-200 transition-colors duration-200">
-            <span>Ver perfil</span>
-            <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform duration-200" />
-          </span>
-        </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </article>
   );
 }

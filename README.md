@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Union Lab — Frontend
 
-## Getting Started
+Bot list e hub da comunidade Union Lab: vitrine de bots do Discord, votos e avaliações, unicoins, loja de banners, VIP, outdoor, corridas, eventos e snippets de código.
 
-First, run the development server:
+Feito com Next.js 16 (App Router), React 19 e Tailwind CSS 3.
+
+## Rodando localmente
+
+1. Copie `.env.example` para `.env.local` e ajuste as variáveis:
+   - `NEXT_PUBLIC_API_URL` — URL do backend (Fastify). Padrão: `http://localhost:80`.
+   - `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` — opcional; o backend também pode fornecer via `/api/public/config`.
+2. Suba o backend.
+3. Instale e rode:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Como está organizado
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `src/app/` — rotas. Os `page.tsx` cuidam de metadata/SEO e dados iniciais no servidor; os `*Client.tsx` ligam o contexto do app às views.
+- `src/views/` — telas de cada página (client components).
+- `src/components/` — componentes compartilhados (`ui/` são os primitivos).
+- `src/context/AppContext.tsx` — usuário logado, token, toasts, modal de celebração, menu mobile.
+- `src/lib/api.ts` — helpers de fetch (`fetchJson`, `parseJson`) e login (`startLogin`).
 
-## Learn More
+Todas as chamadas para `/api/*` no navegador passam pelo rewrite em `next.config.ts` até o backend.
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `npm run dev` — servidor de desenvolvimento
+- `npm run build` / `npm start` — build e servidor de produção
+- `npm run lint` — ESLint

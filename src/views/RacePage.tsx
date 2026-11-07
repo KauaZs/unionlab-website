@@ -6,6 +6,7 @@ import { Trophy, Flame, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
+import { startLogin } from "@/lib/api";
 
 interface Player {
   id: string;
@@ -233,8 +234,7 @@ export default function RacePage({ raceId, user, onUpdateUser, showToast }: Race
         </div>
         <Button
           onClick={() => {
-            localStorage.setItem("redirect_target", window.location.hash);
-            window.location.href = "/api/auth/login";
+            startLogin();
           }}
           variant="premium"
           className="w-full h-10 font-bold text-xs"

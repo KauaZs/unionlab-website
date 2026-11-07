@@ -1,11 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-jakarta), sans-serif;
   line-height: 1.6;
   font-weight: 400;
 
@@ -142,7 +140,7 @@ header {
 }
 
 .logo {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-outfit), sans-serif;
   font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.5px;
@@ -273,7 +271,7 @@ main {
   position: relative;
 }
 .home-hero h1 {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-outfit), sans-serif;
   font-size: 56px;
   font-weight: 800;
   line-height: 1.1;
@@ -428,7 +426,7 @@ main {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .bot-card-info h3 {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-outfit), sans-serif;
   font-size: 20px;
   font-weight: 700;
   color: var(--text-primary);
@@ -519,7 +517,7 @@ main {
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
 }
 .bot-detail-meta h2 {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-outfit), sans-serif;
   font-size: 36px;
   font-weight: 800;
   margin-bottom: 10px;
@@ -557,7 +555,7 @@ main {
   gap: 30px;
 }
 .feedback-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-outfit), sans-serif;
   font-size: 24px;
   font-weight: 800;
   border-left: 4px solid var(--accent-purple);
@@ -688,7 +686,7 @@ main {
   color: white;
   border: none;
   font-weight: 800;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-outfit), sans-serif;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 8px 30px var(--accent-pink-glow);
@@ -738,7 +736,7 @@ main {
   object-fit: cover;
 }
 .profile-meta h2 {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-outfit), sans-serif;
   font-size: 40px;
   font-weight: 800;
   margin-bottom: 15px;
@@ -764,7 +762,7 @@ main {
 }
 
 .profile-section-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-outfit), sans-serif;
   font-size: 26px;
   font-weight: 800;
   margin-bottom: 24px;

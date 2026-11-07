@@ -5,6 +5,7 @@ import { Coins, Sparkles, Check, Crown, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
+import { parseJson } from "@/lib/api";
 
 interface VipStatus {
   active: boolean;
@@ -39,7 +40,7 @@ export default function VipPage({ user, onUpdateUser, showToast }: VipPageProps)
     fetch("/api/public/vip/status", {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => res.json())
+      .then(parseJson)
       .then((data) => {
         setStatus(data as VipStatus);
         setLoading(false);

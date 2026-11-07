@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Search, Star, Plus, Eye, Calendar, Code, X, ChevronRight, Lock, DollarSign, Terminal } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
+import { parseJson } from "@/lib/api";
 
 interface CodeSnippet {
   id: string;
@@ -69,7 +71,7 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
     if (params.toString()) url += `?${params.toString()}`;
 
     fetch(url)
-      .then((res) => res.json())
+      .then(parseJson)
       .then((data) => {
         if (Array.isArray(data)) setCodes(data);
         setLoading(false);
@@ -236,9 +238,8 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {codes.map((snippet) => (
+            <Link key={snippet.id} href={`/codes/${snippet.id}`} className="block h-full rounded-2xl">
             <Card
-              key={snippet.id}
-              onClick={() => window.location.href = `/codes/${snippet.id}`}
               className="border border-slate-900 bg-slate-950/20 hover:bg-slate-950/40 hover:border-slate-800 transition-all duration-300 rounded-2xl cursor-pointer group flex flex-col justify-between h-full select-none"
             >
               <CardHeader className="p-5 pb-3">
@@ -295,6 +296,7 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
                 </div>
               </CardContent>
             </Card>
+            </Link>
           ))}
         </div>
       )}
