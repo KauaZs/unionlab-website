@@ -4,9 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, ExternalLink, Flame, Link2, Calendar, Clock, XCircle, Trash2, Share2, Pencil, ChevronLeft, ChevronRight, X,
+  ArrowLeft, ExternalLink, Flame, Link2, Calendar, Clock, XCircle, Trash2, Share2, Pencil,
 } from "lucide-react";
 import Markdown from "@/components/Markdown";
+import ImageGallery from "@/components/ImageGallery";
 import ReCaptcha from "@/components/ReCaptcha";
 import { userAvatarUrl } from "@/components/ProjectCard";
 import { useApp } from "@/context/AppContext";
@@ -31,7 +32,6 @@ export default function ProjectDetail({ id }: { id: string }) {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [voting, setVoting] = useState(false);
   const [voteCooldown, setVoteCooldown] = useState<number | null>(null);
-  const [lightbox, setLightbox] = useState<number | null>(null);
   const cooldownText = useCountdown(voteCooldown ?? user?.cooldowns?.voteProject);
 
   const load = useCallback(() => {
@@ -216,17 +216,7 @@ export default function ProjectDetail({ id }: { id: string }) {
           {project.screenshots.length > 0 && (
             <section className="space-y-3">
               <h2 className="text-sm font-extrabold uppercase tracking-wider text-slate-400">Galeria</h2>
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                {project.screenshots.map((src, i) => (
-                  <button
-                    key={`${i}-${src}`}
-                    onClick={() => setLightbox(i)}
-                    className="group overflow-hidden rounded-xl border border-slate-900 bg-zinc-950"
-                  >
-                    <img src={src} alt={`Screenshot ${i + 1}`} loading="lazy" className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                  </button>
-                ))}
-              </div>
+              <ImageGallery images={project.screenshots} label={project.title} />
             </section>
           )}
 
@@ -333,40 +323,6 @@ export default function ProjectDetail({ id }: { id: string }) {
           </div>
         </aside>
       </div>
-
-      {/* Lightbox */}
-      {lightbox !== null && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/90 p-4" onClick={() => setLightbox(null)} role="dialog" aria-modal="true">
-          <button className="absolute right-4 top-4 rounded-full p-2 text-white hover:bg-white/10" aria-label="Fechar">
-            <X className="h-6 w-6" />
-          </button>
-          {project.screenshots.length > 1 && (
-            <>
-              <button
-                className="absolute left-4 rounded-full p-2 text-white hover:bg-white/10"
-                aria-label="Anterior"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLightbox((lightbox - 1 + project.screenshots.length) % project.screenshots.length);
-                }}
-              >
-                <ChevronLeft className="h-8 w-8" />
-              </button>
-              <button
-                className="absolute right-4 rounded-full p-2 text-white hover:bg-white/10"
-                aria-label="Próxima"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLightbox((lightbox + 1) % project.screenshots.length);
-                }}
-              >
-                <ChevronRight className="h-8 w-8" />
-              </button>
-            </>
-          )}
-          <img src={project.screenshots[lightbox]} alt="" className="max-h-full max-w-full rounded-xl object-contain" onClick={(e) => e.stopPropagation()} />
-        </div>
-      )}
     </div>
   );
 }

@@ -35,6 +35,8 @@ interface Bot {
   commands?: BotCommand[];
   changelogs?: BotChangelog[];
   tags?: string[];
+  banner?: string | null;
+  screenshots?: string[];
 }
 
 interface Feedback {
@@ -259,6 +261,8 @@ export default function BotDetailClient({ params }: { params: Promise<{ id: stri
     commands: BotCommand[];
     changelogs: BotChangelog[];
     tags: string[];
+    banner: string | null;
+    screenshots: string[];
   }) => {
     if (!authToken || !botDetail) return false;
 

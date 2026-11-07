@@ -57,15 +57,25 @@ export default function BotCard({ bot, rank }: BotCardProps) {
         className="absolute inset-0 z-[1] rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
       />
 
-      {/* Banner: the bot's own avatar, blown up and blurred, so the colors always match it */}
+      {/* Banner: the owner's custom banner, or the bot's own avatar blown up and blurred so colors match it */}
       <div className="relative h-20 shrink-0 overflow-hidden bg-zinc-900">
-        <img
-          src={botAvatarUrl(bot.id, bot.avatar)}
-          alt=""
-          aria-hidden
-          loading="lazy"
-          className="absolute inset-0 h-full w-full scale-150 object-cover opacity-80 blur-2xl saturate-150 transition-transform duration-500 group-hover:scale-[1.7]"
-        />
+        {bot.banner ? (
+          <img
+            src={bot.banner}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <img
+            src={botAvatarUrl(bot.id, bot.avatar)}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            className="absolute inset-0 h-full w-full scale-150 object-cover opacity-80 blur-2xl saturate-150 transition-transform duration-500 group-hover:scale-[1.7]"
+          />
+        )}
         <div className="absolute inset-0 bg-black/20" />
         <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-zinc-950 to-transparent" />
         <div className="absolute right-3 top-3 flex items-center gap-1.5">

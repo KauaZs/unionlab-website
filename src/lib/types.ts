@@ -11,6 +11,8 @@ export interface Bot {
   tags?: string[];
   /** When the bot was listed on Union Lab (ISO date). */
   addedAt?: string;
+  /** Custom banner image set by the owner. */
+  banner?: string | null;
 }
 
 export interface EventData {

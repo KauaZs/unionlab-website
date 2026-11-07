@@ -61,7 +61,10 @@ export async function prepareImage(file: File): Promise<Blob> {
 }
 
 /** Uploads one image through the API (which stores it on Catbox) and returns its URL. */
-export async function uploadImageFile(file: File, authToken: string): Promise<string> {
+/** Which folder the API stores the image in. */
+export type UploadKind = "project" | "bot";
+
+export async function uploadImageFile(file: File, authToken: string, kind: UploadKind = "project"): Promise<string> {
   if (!ACCEPTED.includes(file.type)) throw new Error("Use PNG, JPG, GIF ou WEBP.");
   if (file.size > MAX_INPUT_BYTES) throw new Error("A imagem deve ter no máximo 25 MB.");
 
@@ -71,7 +74,7 @@ export async function uploadImageFile(file: File, authToken: string): Promise<st
     res = await fetch("/api/public/uploads/image", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
-      body: JSON.stringify({ data }),
+      body: JSON.stringify({ data, kind }),
     });
   } catch {
     throw new Error("Sem conexão com o servidor. Tente novamente.");
@@ -86,6 +89,7 @@ export async function uploadImageFile(file: File, authToken: string): Promise<st
 }
 
 interface ImageUploadProps {
+  kind?: UploadKind;
   authToken: string;
   /** Current image URLs. */
   value: string[];
@@ -97,7 +101,7 @@ interface ImageUploadProps {
   hint: string;
 }
 
-export default function ImageUpload({ authToken, value, onChange, max, onError, variant, hint }: ImageUploadProps) {
+export default function ImageUpload({ authToken, value, onChange, max, onError, variant, hint, kind = "project" }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(0);
 
@@ -108,7 +112,7 @@ export default function ImageUpload({ authToken, value, onChange, max, onError, 
     if (files.length > room) onError(`Você pode enviar no máximo ${max} ${max === 1 ? "imagem" : "imagens"}.`);
 
     setUploading((n) => n + picked.length);
-    const results = await Promise.allSettled(picked.map((f) => uploadImageFile(f, authToken)));
+    const results = await Promise.allSettled(picked.map((f) => uploadImageFile(f, authToken, kind)));
     setUploading((n) => n - picked.length);
 
     const urls: string[] = [];

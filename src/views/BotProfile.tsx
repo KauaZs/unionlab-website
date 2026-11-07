@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Flame, ShieldAlert, Calendar, Star, Info, Trash2, Settings, X, Plus, Terminal, History, Pencil, Copy, Check, Code2, Sparkles, ChevronRight } from "lucide-react";
+import { Flame, ShieldAlert, Calendar, Star, Info, Trash2, Settings, X, Plus, Terminal, History, Pencil, Copy, Check, Code2, Sparkles, ChevronRight, Image as ImageIcon } from "lucide-react";
 import Stars from "../components/Stars";
 import ReCaptcha from "../components/ReCaptcha";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -11,6 +11,9 @@ import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
 import { startLogin } from "@/lib/api";
 import Markdown from "@/components/Markdown";
+import ImageUpload from "@/components/ImageUpload";
+import ImageGallery from "@/components/ImageGallery";
+import { useApp } from "@/context/AppContext";
 import { botAvatarUrl } from "@/components/BotCard";
 import { categoriesOf, categoryForTag } from "@/lib/categories";
 import { cn } from "@/lib/utils";
@@ -45,6 +48,10 @@ interface Bot {
   commands?: BotCommand[];
   changelogs?: BotChangelog[];
   tags?: string[];
+  /** Custom banner image; falls back to the blurred avatar. */
+  banner?: string | null;
+  /** Images of the bot in action. */
+  screenshots?: string[];
 }
 
 interface Feedback {
@@ -80,6 +87,8 @@ interface BotProfileProps {
     commands: BotCommand[];
     changelogs: BotChangelog[];
     tags: string[];
+    banner: string | null;
+    screenshots: string[];
   }) => Promise<boolean>;
 }
 
@@ -107,6 +116,7 @@ export default function BotProfile({
   recaptchaSiteKey,
   onSaveBotDetails,
 }: BotProfileProps) {
+  const { authToken, showToast } = useApp();
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const existingFeedback = feedbacks.find(f => f.userId === user?.id);
 
@@ -121,6 +131,8 @@ export default function BotProfile({
   const [editCommands, setEditCommands] = useState<BotCommand[]>(botDetail.commands || []);
   const [editChangelogs, setEditChangelogs] = useState<BotChangelog[]>(botDetail.changelogs || []);
   const [editTags, setEditTags] = useState<string[]>(botDetail.tags || []);
+  const [editBanner, setEditBanner] = useState<string[]>(botDetail.banner ? [botDetail.banner] : []);
+  const [editScreenshots, setEditScreenshots] = useState<string[]>(botDetail.screenshots || []);
   const [savingBot, setSavingBot] = useState(false);
 
   // New command states
@@ -147,6 +159,8 @@ export default function BotProfile({
       setEditCommands(botDetail.commands || []);
       setEditChangelogs(botDetail.changelogs || []);
       setEditTags(botDetail.tags || []);
+      setEditBanner(botDetail.banner ? [botDetail.banner] : []);
+      setEditScreenshots(botDetail.screenshots || []);
       setEditingLogIndex(null);
       setNewLogVersion("");
       setNewLogTitle("");
@@ -209,9 +223,15 @@ export default function BotProfile({
     <div className="space-y-6">
       {/* Hero: blurred-avatar cover, big avatar, name, chips and actions */}
       <section className="relative overflow-hidden rounded-3xl border border-slate-900 bg-zinc-950/70">
-        <div className="relative h-36 overflow-hidden sm:h-48">
-          <img src={avatar} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-150 object-cover opacity-70 blur-3xl saturate-150" />
-          <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.09)_1px,transparent_1px)] opacity-40 [background-size:18px_18px]" />
+        <div className={cn("relative overflow-hidden", botDetail.banner ? "h-44 sm:h-64" : "h-36 sm:h-48")}>
+          {botDetail.banner ? (
+            <img src={botDetail.banner} alt={`Banner de ${botDetail.username}`} className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <>
+              <img src={avatar} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-150 object-cover opacity-70 blur-3xl saturate-150" />
+              <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.09)_1px,transparent_1px)] opacity-40 [background-size:18px_18px]" />
+            </>
+          )}
           <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-zinc-950 to-transparent" />
         </div>
 
@@ -331,6 +351,16 @@ export default function BotProfile({
               {botDetail.description ? <Markdown>{botDetail.description}</Markdown> : <p className="text-slate-500">Nenhuma descrição informada.</p>}
             </div>
           </section>
+
+          {(botDetail.screenshots?.length ?? 0) > 0 && (
+            <section className={cn(panel, "p-6")}>
+              <h2 className={sectionTitle}>
+                <ImageIcon className="h-4 w-4" />
+                Bot em ação
+              </h2>
+              <ImageGallery images={botDetail.screenshots!} label={botDetail.username} className="mt-4" />
+            </section>
+          )}
 
           {latestChangelog && (
             <button
@@ -651,6 +681,44 @@ export default function BotProfile({
                   placeholder="Descreva as funções do seu bot para os usuários..."
                   className="min-h-[100px] text-sm bg-slate-900/60 border border-slate-900/80 rounded-xl px-3.5 py-2.5 text-slate-350 placeholder-slate-650 focus:border-slate-800 outline-none transition-all"
                 />
+              </div>
+
+              {/* Banner & screenshots */}
+              <div className="space-y-4 border-t border-slate-900 pt-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Banner do perfil</label>
+                  <p className="text-[11px] text-slate-500">Aparece no topo do perfil e no card da página inicial. Sem banner, usamos o avatar desfocado.</p>
+                  {authToken && (
+                    <ImageUpload
+                      kind="bot"
+                      authToken={authToken}
+                      value={editBanner}
+                      onChange={setEditBanner}
+                      max={1}
+                      variant="cover"
+                      hint="Recomendado 1500×500 • PNG, JPG, WEBP ou GIF"
+                      onError={(m) => showToast(m, "error")}
+                    />
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    Imagens do bot funcionando ({editScreenshots.length}/6)
+                  </label>
+                  <p className="text-[11px] text-slate-500">Prints de comandos, painéis e respostas do bot. Aparecem numa galeria no perfil.</p>
+                  {authToken && (
+                    <ImageUpload
+                      kind="bot"
+                      authToken={authToken}
+                      value={editScreenshots}
+                      onChange={setEditScreenshots}
+                      max={6}
+                      variant="gallery"
+                      hint="PNG, JPG, WEBP ou GIF"
+                      onError={(m) => showToast(m, "error")}
+                    />
+                  )}
+                </div>
               </div>
 
               {/* Category Tags Manager */}
@@ -1065,6 +1133,8 @@ export default function BotProfile({
                     commands: editCommands,
                     changelogs: editChangelogs,
                     tags: editTags,
+                    banner: editBanner[0] ?? null,
+                    screenshots: editScreenshots,
                   });
                   setSavingBot(false);
                   if (success) {
