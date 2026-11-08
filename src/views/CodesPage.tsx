@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search, Star, Plus, Eye, Calendar, Code, X, ChevronRight, Lock, DollarSign, Terminal } from "lucide-react";
+import { Search, Star, Plus, Eye, Calendar, Code, X, ChevronRight, Lock, DollarSign, Terminal, Video } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { parseJson } from "@/lib/api";
+import { VIDEO_CODES_MANAGER_ID } from "@/lib/site";
 
 interface CodeSnippet {
   id: string;
@@ -20,6 +21,7 @@ interface CodeSnippet {
   language: string;
   createdAt: string;
   stars: number;
+  isVideo?: boolean;
 }
 
 interface CodesPageProps {
@@ -52,6 +54,7 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [languageFilter, setLanguageFilter] = useState("");
+  const [kindFilter, setKindFilter] = useState<"all" | "general" | "video">("all");
 
   // Publish Modal States
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
@@ -60,6 +63,7 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
   const [publishLanguage, setPublishLanguage] = useState("javascript");
   const [publishPrice, setPublishPrice] = useState<number>(0);
   const [publishCode, setPublishCode] = useState("");
+  const [publishIsVideo, setPublishIsVideo] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
 
   const fetchCodes = () => {
@@ -88,6 +92,15 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
     }, 300);
     return () => clearTimeout(handler);
   }, [search, languageFilter]);
+
+  const canMarkVideo = user?.id === VIDEO_CODES_MANAGER_ID;
+  const videoCount = codes.filter((c) => c.isVideo).length;
+  const visibleCodes = codes.filter((c) => (kindFilter === "all" ? true : kindFilter === "video" ? c.isVideo : !c.isVideo));
+  const kindTabs = [
+    { id: "all" as const, label: "Todos", count: codes.length, icon: Code },
+    { id: "general" as const, label: "Códigos gerais", count: codes.length - videoCount, icon: Terminal },
+    { id: "video" as const, label: "Códigos de vídeo", count: videoCount, icon: Video },
+  ];
 
   const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,6 +144,7 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
           code: publishCode,
           price: publishPrice,
           language: publishLanguage,
+          isVideo: canMarkVideo && publishIsVideo,
         }),
       });
 
@@ -145,6 +159,7 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
         setPublishCode("");
         setPublishPrice(0);
         setPublishLanguage("javascript");
+        setPublishIsVideo(false);
         fetchCodes();
       }
     } catch (err) {
@@ -186,7 +201,7 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
         {user && (
           <Button
             onClick={() => setIsPublishModalOpen(true)}
-            className="flex items-center gap-2 h-11 px-5 text-sm font-bold bg-amber-550 hover:bg-amber-600 text-white rounded-xl transition-all shadow-lg shadow-amber-550/10 shrink-0 self-start md:self-center"
+            className="flex items-center gap-2 h-11 px-5 text-sm font-bold bg-white hover:bg-zinc-200 text-black rounded-xl transition-all shadow-lg shadow-black/30 shrink-0 self-start md:self-center"
           >
             <Plus className="w-4 h-4" />
             Publicar Snippet
@@ -220,6 +235,29 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
         </select>
       </div>
 
+      {/* General / video codes */}
+      <div className="flex gap-1 overflow-x-auto rounded-2xl border border-slate-900 bg-zinc-950/60 p-1.5 [scrollbar-width:none] sm:w-fit">
+        {kindTabs.map((t) => {
+          const Icon = t.icon;
+          const active = kindFilter === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setKindFilter(t.id)}
+              aria-pressed={active}
+              className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all duration-200 ${
+                active ? "bg-white text-black shadow-md" : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {t.label}
+              <span className={`rounded-md px-1.5 text-[10px] font-black ${active ? "bg-black/10 text-zinc-700" : "bg-slate-900 text-slate-500"}`}>{t.count}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Snippet Cards Grid */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -227,7 +265,7 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
             <div key={i} className="h-44 w-full bg-slate-950/20 border border-slate-900/60 rounded-2xl animate-pulse" />
           ))}
         </div>
-      ) : codes.length === 0 ? (
+      ) : visibleCodes.length === 0 ? (
         <div className="text-center py-16 bg-slate-950/5 border border-slate-900 rounded-2xl">
           <Terminal className="w-12 h-12 text-slate-700 mx-auto mb-4" />
           <h3 className="font-bold text-lg text-slate-400">Nenhum snippet encontrado</h3>
@@ -237,7 +275,7 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {codes.map((snippet) => (
+          {visibleCodes.map((snippet) => (
             <Link key={snippet.id} href={`/codes/${snippet.id}`} className="block h-full rounded-2xl">
             <Card
               className="border border-slate-900 bg-slate-950/20 hover:bg-slate-950/40 hover:border-slate-800 transition-all duration-300 rounded-2xl cursor-pointer group flex flex-col justify-between h-full select-none"
@@ -247,6 +285,12 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
                   <Badge variant="outline" className="text-[10px] font-bold border-slate-850 bg-slate-900/40 text-slate-400 py-0.5 px-2.5 rounded-full select-none">
                     {formatLanguage(snippet.language)}
                   </Badge>
+                  {snippet.isVideo && (
+                    <span className="flex items-center gap-1 rounded-full border border-red-500/25 bg-red-500/10 px-2 py-0.5 text-[10px] font-bold text-red-400">
+                      <Video className="h-3 w-3" />
+                      Vídeo
+                    </span>
+                  )}
                   <div className="flex items-center gap-1 text-slate-500 font-bold text-xs select-none">
                     <Star className="w-3.5 h-3.5 fill-amber-500/10 text-amber-500/70" />
                     <span>{snippet.stars}</span>
@@ -376,16 +420,34 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Código</label>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Código</label>
                 <textarea
                   required
                   value={publishCode}
                   onChange={(e) => setPublishCode(e.target.value)}
                   maxLength={20000}
                   placeholder="Escreva ou cole seu snippet de código aqui..."
-                  className="min-h-[400px] text-xs bg-slate-900/60 border border-slate-900/80 rounded-xl px-3.5 py-2.5 text-slate-350 placeholder-slate-650 focus:border-slate-800 outline-none transition-all font-mono whitespace-pre resize-y"
+                  className="block w-full min-h-[320px] text-xs bg-slate-900/60 border border-slate-900/80 rounded-xl px-3.5 py-2.5 text-slate-350 placeholder-slate-650 focus:border-slate-800 outline-none transition-all font-mono whitespace-pre resize-y"
                 />
               </div>
+
+              {canMarkVideo && (
+                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/[0.05] p-3">
+                  <input
+                    type="checkbox"
+                    checked={publishIsVideo}
+                    onChange={(e) => setPublishIsVideo(e.target.checked)}
+                    className="h-4 w-4 shrink-0 accent-red-500"
+                  />
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
+                      <Video className="h-3.5 w-3.5 text-red-400" />
+                      Código de vídeo
+                    </span>
+                    <span className="block text-[11px] text-slate-500">Aparece no filtro de códigos postados no YouTube.</span>
+                  </span>
+                </label>
+              )}
 
               {/* Modal Actions */}
               <div className="flex justify-end gap-2 border-t border-slate-900 pt-3.5">
@@ -401,7 +463,7 @@ export default function CodesPage({ user, refreshUser, showToast }: CodesPagePro
                 <Button
                   type="submit"
                   disabled={isPublishing}
-                  className="h-9 px-5 text-xs font-bold bg-amber-550 hover:bg-amber-600 text-white rounded-xl"
+                  className="h-9 px-5 text-xs font-bold bg-white hover:bg-zinc-200 text-black rounded-xl"
                 >
                   {isPublishing ? "Publicando..." : "Publicar Código"}
                 </Button>

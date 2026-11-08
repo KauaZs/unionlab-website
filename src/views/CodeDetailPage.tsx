@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Star, Eye, Calendar, Copy, Lock, ShieldAlert, Trash2, Coins, Code, ExternalLink } from "lucide-react";
+import { ArrowLeft, Star, Eye, Calendar, Copy, Lock, ShieldAlert, Trash2, Coins, Code, ExternalLink, Video } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
+import { VIDEO_CODES_MANAGER_ID } from "@/lib/site";
 
 interface CodeDetail {
   id: string;
@@ -22,6 +23,7 @@ interface CodeDetail {
   hasStarred: boolean;
   hasAccess: boolean;
   code: string;
+  isVideo?: boolean;
 }
 
 interface CodeDetailPageProps {
@@ -57,6 +59,7 @@ export default function CodeDetailPage({ id, user, refreshUser, showToast }: Cod
   const [buying, setBuying] = useState(false);
   const [staring, setStaring] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [savingVideo, setSavingVideo] = useState(false);
 
   const fetchCodeDetails = () => {
     const token = localStorage.getItem("token");
@@ -230,6 +233,32 @@ export default function CodeDetailPage({ id, user, refreshUser, showToast }: Cod
   }
 
   const isOwner = user && user.id === codeData.authorId;
+  const canMarkVideo = user?.id === VIDEO_CODES_MANAGER_ID;
+
+  const toggleVideo = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const next = !codeData.isVideo;
+    setSavingVideo(true);
+    try {
+      const res = await fetch(`/api/public/codes/${codeData.id}/video`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ isVideo: next }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showToast(data.error || "Erro ao atualizar o código.", "error");
+        return;
+      }
+      setCodeData({ ...codeData, isVideo: next });
+      showToast(next ? "Marcado como código de vídeo." : "Removido dos códigos de vídeo.", "success");
+    } catch {
+      showToast("Erro de conexão com o servidor.", "error");
+    } finally {
+      setSavingVideo(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
@@ -249,6 +278,12 @@ export default function CodeDetailPage({ id, user, refreshUser, showToast }: Cod
             <Badge variant="outline" className="text-[10px] font-bold border-slate-850 bg-slate-900/40 text-slate-400 py-0.5 px-2.5 rounded-full select-none">
               {formatLanguage(codeData.language)}
             </Badge>
+            {codeData.isVideo && (
+              <span className="flex items-center gap-1 rounded-full border border-red-500/25 bg-red-500/10 px-2 py-0.5 text-[10px] font-bold text-red-400">
+                <Video className="h-3 w-3" />
+                Código de vídeo
+              </span>
+            )}
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 select-none">
               <Eye className="w-3.5 h-3.5" />
               <span>{codeData.views} views</span>
@@ -285,6 +320,20 @@ export default function CodeDetailPage({ id, user, refreshUser, showToast }: Cod
             <Star className={`w-3.5 h-3.5 ${codeData.hasStarred ? "fill-amber-550/20 text-amber-500" : ""}`} />
             {codeData.hasStarred ? "Favoritado" : "Favoritar"} ({codeData.stars})
           </Button>
+
+          {canMarkVideo && (
+            <Button
+              variant="outline"
+              disabled={savingVideo}
+              onClick={toggleVideo}
+              className={`flex items-center gap-2 h-9 px-4 text-xs font-bold transition-colors ${
+                codeData.isVideo ? "border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20" : "border-slate-900 bg-slate-950/20 text-slate-400 hover:bg-slate-900"
+              }`}
+            >
+              <Video className="w-3.5 h-3.5" />
+              {codeData.isVideo ? "Remover de vídeos" : "Marcar como vídeo"}
+            </Button>
+          )}
 
           {isOwner && (
             <Button
