@@ -27,6 +27,23 @@ interface LeaderboardData {
   }[];
 }
 
+const RANK_BADGE_STYLES: Record<1 | 2 | 3, string> = {
+  1: "h-8 w-8 text-sm bg-gradient-to-b from-amber-200 to-amber-500 text-amber-950",
+  2: "h-7 w-7 text-xs bg-gradient-to-b from-slate-100 to-slate-400 text-slate-800",
+  3: "h-7 w-7 text-xs bg-gradient-to-b from-orange-300 to-orange-600 text-orange-950",
+};
+
+/** Medal with the podium position, overlapping the bottom of the avatar. */
+function RankBadge({ position }: { position: 1 | 2 | 3 }) {
+  return (
+    <div
+      className={`absolute -bottom-3 left-1/2 flex -translate-x-1/2 items-center justify-center rounded-full font-black tabular-nums leading-none shadow-lg shadow-black/50 ring-[3px] ring-zinc-950 ${RANK_BADGE_STYLES[position]}`}
+    >
+      {position}
+    </div>
+  );
+}
+
 export default function Leaderboard() {
   const router = useRouter();
   const [data, setData] = useState<LeaderboardData | null>(null);
@@ -179,11 +196,9 @@ export default function Leaderboard() {
                           className="w-full h-full object-cover" 
                         />
                       </div>
-                      <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-slate-300 text-black text-[9px] font-black rounded-full h-4.5 w-4.5 flex items-center justify-center border border-slate-950">
-                        2
-                      </div>
+                      <RankBadge position={2} />
                     </div>
-                    <span className="font-extrabold text-xs text-slate-300 text-center truncate w-full mt-2 group-hover:text-white transition-colors">
+                    <span className="font-extrabold text-xs text-slate-300 text-center truncate w-full mt-3 group-hover:text-white transition-colors">
                       {podium[1].username}
                     </span>
                     <span className="text-[10px] font-black text-slate-500">
@@ -199,7 +214,7 @@ export default function Leaderboard() {
                     onClick={() => handleProfileClick(podium[0].id)}
                   >
                     <div className="relative -top-3">
-                      <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full border-2 border-amber-400 overflow-hidden shadow-lg shadow-amber-400/20 group-hover:scale-105 transition-transform duration-300">
+                      <div className="h-[72px] w-[72px] sm:h-20 sm:w-20 rounded-full border-2 border-amber-400 overflow-hidden shadow-lg shadow-amber-400/20 group-hover:scale-105 transition-transform duration-300">
                         <img 
                           src={getAvatarUrl(podium[0].id, podium[0].avatar)} 
                           alt={podium[0].username}
@@ -207,11 +222,9 @@ export default function Leaderboard() {
                         />
                       </div>
                       <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-base animate-bounce">👑</div>
-                      <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-amber-400 text-black text-xs font-black rounded-full h-5.5 w-5.5 flex items-center justify-center border border-slate-950">
-                        1
-                      </div>
+                      <RankBadge position={1} />
                     </div>
-                    <span className="font-extrabold text-sm text-amber-400 text-center truncate w-full group-hover:text-amber-300 transition-colors">
+                    <span className="font-extrabold text-sm text-amber-400 text-center truncate w-full mt-1 group-hover:text-amber-300 transition-colors">
                       {podium[0].username}
                     </span>
                     <span className="text-xs font-black text-amber-500">
@@ -234,11 +247,9 @@ export default function Leaderboard() {
                           className="w-full h-full object-cover" 
                         />
                       </div>
-                      <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-amber-700 text-white text-[9px] font-black rounded-full h-4.5 w-4.5 flex items-center justify-center border border-slate-950">
-                        3
-                      </div>
+                      <RankBadge position={3} />
                     </div>
-                    <span className="font-extrabold text-xs text-amber-700 text-center truncate w-full mt-2 group-hover:text-amber-600 transition-colors">
+                    <span className="font-extrabold text-xs text-amber-700 text-center truncate w-full mt-3 group-hover:text-amber-600 transition-colors">
                       {podium[2].username}
                     </span>
                     <span className="text-[10px] font-black text-slate-500">

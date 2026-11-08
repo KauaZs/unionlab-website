@@ -7,6 +7,9 @@ import CelebrationModal from "@/components/CelebrationModal";
 import SiteBackground from "@/components/SiteBackground";
 import { Compass, Trophy, ShoppingBag, Crown, Megaphone, Bot, HelpCircle, X, Coins, Terminal, Plus } from "lucide-react";
 import { parseJson } from "@/lib/api";
+import SiteFooter from "@/components/SiteFooter";
+import DiscordIcon from "@/components/DiscordIcon";
+import { DISCORD_INVITE_URL } from "@/lib/site";
 
 interface User {
   id: string;
@@ -184,6 +187,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         {/* MAIN CONTAINER */}
         <main>{children}</main>
+        <SiteFooter />
 
         {/* TOAST NOTIFICATIONS */}
         <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 max-w-sm w-full pointer-events-none">
@@ -301,6 +305,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     );
                   })}
                 </nav>
+
+                <a
+                  href={DISCORD_INVITE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 rounded-xl bg-[#5865F2] px-4 py-3 text-sm font-extrabold text-white transition-colors hover:bg-[#4752C4]"
+                >
+                  <DiscordIcon className="h-5 w-5" />
+                  Entrar no Discord
+                </a>
               </div>
 
               {/* Footer */}

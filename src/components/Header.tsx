@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Compass, Trophy, HelpCircle, LogIn, Coins, ShoppingBag, Crown, Megaphone, Bell, Trash2, Bot, Menu, Terminal, Plus } from "lucide-react";
 import { Button } from "./ui/button";
 import { parseJson, startLogin } from "@/lib/api";
+import DiscordIcon from "./DiscordIcon";
+import { DISCORD_INVITE_URL } from "@/lib/site";
 
 interface HeaderProps {
   user: {
@@ -211,6 +213,16 @@ export default function Header({ user, currentPath, onNavigate, onOpenMobileMenu
 
       {/* User Actions */}
       <div className="flex items-center gap-4">
+        <a
+          href={DISCORD_INVITE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Entrar no servidor do Discord"
+          title="Entrar no servidor do Discord"
+          className="hidden h-10 w-10 items-center justify-center rounded-xl bg-[#5865F2] text-white shadow-md shadow-[#5865F2]/20 transition-all duration-200 hover:scale-105 hover:bg-[#4752C4] sm:flex"
+        >
+          <DiscordIcon className="h-5 w-5" />
+        </a>
         {user ? (
           <div className="flex items-center gap-3">
             <div className="relative">
