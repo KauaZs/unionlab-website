@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, ExternalLink, Flame, Link2, Calendar, Clock, XCircle, Trash2, Share2, Pencil,
+  ArrowLeft, ExternalLink, Flame, Link2, Calendar, Clock, XCircle, Share2, Pencil,
 } from "lucide-react";
 import Markdown from "@/components/Markdown";
 import ImageGallery from "@/components/ImageGallery";
@@ -16,6 +16,9 @@ import { ApiError, fetchJson, startLogin } from "@/lib/api";
 import { PROJECT_TYPE_BY_ID, TAB_SLUGS, embedUrlFor, hostOf, projectGradient } from "@/lib/projectTypes";
 import { cn } from "@/lib/utils";
 import type { Project, ProjectType } from "@/lib/types";
+import SupporterBadge from "@/components/SupporterBadge";
+import DeleteProjectButton from "@/components/DeleteProjectButton";
+import { voteBonusText } from "@/lib/votes";
 
 const OPEN_LABEL: Record<ProjectType, string> = {
   website: "Visitar site",
@@ -64,7 +67,7 @@ export default function ProjectDetail({ id }: { id: string }) {
         showToast(data.error || "Falha ao registrar voto.", "error");
         return;
       }
-      showCelebration("Voto Computado! 🔥", `Seu voto em ${project.title} foi registrado!`, `+${data.coinsEarned ?? 0} Unicoins`);
+      showCelebration("Voto Computado! 🔥", `Seu voto em ${project.title} foi registrado!`, `+${data.coinsEarned ?? 0} Unicoins`, undefined, voteBonusText(data.votesAdded, data.vipName));
       refreshUser();
       load();
     } catch {
@@ -73,21 +76,6 @@ export default function ProjectDetail({ id }: { id: string }) {
       setVoting(false);
       setCaptchaToken(null);
     }
-  };
-
-  const handleDelete = async () => {
-    if (!project || !authToken) return;
-    if (!window.confirm(`Remover "${project.title}" permanentemente? Os votos também serão apagados.`)) return;
-    const res = await fetch(`/api/public/projects/${project.id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${authToken}` },
-    }).catch(() => null);
-    if (!res?.ok) {
-      showToast("Não foi possível remover o projeto.", "error");
-      return;
-    }
-    showToast("Projeto removido.", "success");
-    router.push("/");
   };
 
   const handleShare = async () => {
@@ -125,7 +113,7 @@ export default function ProjectDetail({ id }: { id: string }) {
   const TypeIcon = type.icon;
   const embed = embedUrlFor(project.url);
   const isOwner = user?.id === project.ownerId;
-  const canVote = project.status === "approved" && !isOwner;
+  const canVote = project.status === "approved";
 
   return (
     <div className="space-y-8">
@@ -176,6 +164,7 @@ export default function ProjectDetail({ id }: { id: string }) {
             <Link href={`/user/${project.ownerId}`} className="flex items-center gap-2 hover:text-white">
               <img src={userAvatarUrl(project.ownerId, project.ownerAvatar)} alt="" className="h-6 w-6 rounded-full" />
               {project.ownerName ?? "Autor"}
+              {project.ownerIsSupporter && <SupporterBadge />}
             </Link>
             <span className="flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5" />
@@ -312,13 +301,7 @@ export default function ProjectDetail({ id }: { id: string }) {
               </Link>
             )}
             {isOwner && (
-              <button
-                onClick={handleDelete}
-                className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-red-500/30 px-3 text-xs font-bold text-red-400 hover:bg-red-500/10"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Remover
-              </button>
+              <DeleteProjectButton projectId={project.id} projectTitle={project.title} onDeleted={() => router.push("/")} />
             )}
           </div>
         </aside>

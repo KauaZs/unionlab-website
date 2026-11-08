@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Flame, X, Sparkles, Coins } from "lucide-react";
+import { Flame, X, Sparkles, Coins, Crown } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface CelebrationModalProps {
@@ -10,6 +10,8 @@ interface CelebrationModalProps {
   subtitle: string;
   rewardText: string;
   streakText?: string;
+  /** Highlight above the reward, e.g. a VIP vote bonus. */
+  bonusText?: string;
   onClose: () => void;
 }
 
@@ -19,6 +21,7 @@ export default function CelebrationModal({
   subtitle,
   rewardText,
   streakText,
+  bonusText,
   onClose,
 }: CelebrationModalProps) {
   // Prevent body scrolling when open
@@ -80,6 +83,13 @@ export default function CelebrationModal({
             {subtitle}
           </p>
         </div>
+
+        {bonusText && (
+          <div className="flex items-center justify-center gap-2 rounded-xl border border-blue-500/25 bg-blue-500/10 px-4 py-2.5 text-xs font-extrabold text-sky-300">
+            <Crown className="h-4 w-4 shrink-0" />
+            <span className="leading-tight">{bonusText}</span>
+          </div>
+        )}
 
         {/* Reward Showcase */}
         <div className="bg-zinc-900/60 border border-slate-900 rounded-2xl p-4 flex flex-col items-center justify-center space-y-1 shadow-inner relative overflow-hidden group">

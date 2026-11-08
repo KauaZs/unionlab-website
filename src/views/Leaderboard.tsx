@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Trophy, Bot, Flame, Coins, ShieldAlert, Sparkles, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { parseJson } from "@/lib/api";
+import SupporterBadge from "@/components/SupporterBadge";
 
 interface LeaderboardData {
   bots: {
@@ -18,12 +19,14 @@ interface LeaderboardData {
     username: string;
     avatar: string | null;
     unicoins: number;
+    isSupporter?: boolean;
   }[];
   reps: {
     id: string;
     username: string;
     avatar: string | null;
     reps: number;
+    isSupporter?: boolean;
   }[];
 }
 
@@ -204,6 +207,7 @@ export default function Leaderboard() {
                     <span className="text-[10px] font-black text-slate-500">
                       {getScoreText(podium[1])}
                     </span>
+                    {(podium[1] as { isSupporter?: boolean }).isSupporter && <SupporterBadge />}
                   </div>
                 )}
 
@@ -230,6 +234,7 @@ export default function Leaderboard() {
                     <span className="text-xs font-black text-amber-500">
                       {getScoreText(podium[0])}
                     </span>
+                    {(podium[0] as { isSupporter?: boolean }).isSupporter && <SupporterBadge />}
                   </div>
                 )}
 
@@ -255,6 +260,7 @@ export default function Leaderboard() {
                     <span className="text-[10px] font-black text-slate-500">
                       {getScoreText(podium[2])}
                     </span>
+                    {(podium[2] as { isSupporter?: boolean }).isSupporter && <SupporterBadge />}
                   </div>
                 )}
               </div>
@@ -284,6 +290,7 @@ export default function Leaderboard() {
                         >
                           {item.username}
                         </span>
+                        {(item as { isSupporter?: boolean }).isSupporter && <SupporterBadge />}
                       </div>
                       <div className="flex items-center gap-1.5 text-slate-300 font-extrabold text-xs">
                         {activeTab === "bots" && <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500/10" />}

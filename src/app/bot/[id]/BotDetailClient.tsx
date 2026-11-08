@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import BotProfile from "@/views/BotProfile";
 import { useApp } from "@/context/AppContext";
 import { parseJson } from "@/lib/api";
+import { voteBonusText } from "@/lib/votes";
 
 interface BotCommand {
   name: string;
@@ -32,6 +33,7 @@ interface Bot {
   ownerId?: string;
   ownerName?: string;
   ownerAvatar?: string | null;
+  ownerIsSupporter?: boolean;
   commands?: BotCommand[];
   changelogs?: BotChangelog[];
   tags?: string[];
@@ -152,7 +154,8 @@ export default function BotDetailClient({ params }: { params: Promise<{ id: stri
         "Voto Computado! 🔥",
         `Seu voto no bot ${botDetail.username} foi registrado com sucesso!`,
         `+${data.coinsEarned ?? data.coins ?? 0} Unicoins`,
-        data.streakInfo?.message ?? data.streakMessage
+        data.streakInfo?.message ?? data.streakMessage,
+        voteBonusText(data.votesAdded, data.vipName)
       );
 
       if (data.cooldownExpiresAt) {

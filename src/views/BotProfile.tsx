@@ -17,6 +17,7 @@ import { useApp } from "@/context/AppContext";
 import { botAvatarUrl } from "@/components/BotCard";
 import { categoriesOf, categoryForTag } from "@/lib/categories";
 import { cn } from "@/lib/utils";
+import SupporterBadge from "@/components/SupporterBadge";
 
 interface BotCommand {
   name: string;
@@ -45,6 +46,7 @@ interface Bot {
   ownerId?: string;
   ownerName?: string;
   ownerAvatar?: string | null;
+  ownerIsSupporter?: boolean;
   commands?: BotCommand[];
   changelogs?: BotChangelog[];
   tags?: string[];
@@ -59,6 +61,7 @@ interface Feedback {
   userId: string;
   username: string;
   avatar: string | null;
+  isSupporter?: boolean;
   rating: number;
   comment: string;
   date: string;
@@ -534,7 +537,10 @@ export default function BotProfile({
                     <img className="h-10 w-10 shrink-0 rounded-full object-cover" src={getAvatarUrl(fb.userId, fb.avatar)} alt="" />
                     <div className="min-w-0 flex-1 space-y-1.5">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="text-sm font-bold text-slate-200">{fb.username}</span>
+                        <span className="flex items-center gap-1.5 text-sm font-bold text-slate-200">
+                          {fb.username}
+                          {fb.isSupporter && <SupporterBadge />}
+                        </span>
                         <Stars rating={fb.rating} size={12} />
                       </div>
                       <p className="break-words text-sm leading-relaxed text-slate-400">{fb.comment}</p>
@@ -598,7 +604,10 @@ export default function BotProfile({
               <img className="h-11 w-11 shrink-0 rounded-full object-cover" src={getAvatarUrl(botDetail.ownerId, botDetail.ownerAvatar || null)} alt="" />
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Desenvolvedor</p>
-                <p className="truncate text-sm font-bold text-slate-200 group-hover:text-white">{botDetail.ownerName ?? "Desconhecido"}</p>
+                <p className="flex items-center gap-1.5 text-sm font-bold text-slate-200 group-hover:text-white">
+                  <span className="truncate">{botDetail.ownerName ?? "Desconhecido"}</span>
+                  {botDetail.ownerIsSupporter && <SupporterBadge />}
+                </p>
               </div>
               <ChevronRight className="h-4 w-4 shrink-0 text-slate-600 transition-transform group-hover:translate-x-0.5 group-hover:text-slate-300" />
             </Link>

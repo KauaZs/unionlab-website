@@ -4,6 +4,7 @@ import type { Project } from "@/lib/types";
 import { PROJECT_TYPE_BY_ID, hostOf, projectGradient } from "@/lib/projectTypes";
 import { isRecent } from "@/lib/dates";
 import { cn } from "@/lib/utils";
+import SupporterBadge from "./SupporterBadge";
 
 const RANK_STYLES: Record<number, string> = {
   1: "bg-amber-400 text-black",
@@ -97,6 +98,7 @@ export default function ProjectCard({ project, rank }: ProjectCardProps) {
           <div className="flex min-w-0 items-center gap-2">
             <img src={userAvatarUrl(project.ownerId, project.ownerAvatar)} alt="" className="h-6 w-6 shrink-0 rounded-full" />
             <span className="truncate text-xs font-semibold text-slate-400">{project.ownerName ?? "Autor"}</span>
+            {project.ownerIsSupporter && <SupporterBadge />}
           </div>
           <div className="flex shrink-0 items-center gap-3">
             <span className="flex items-center gap-1 text-xs font-bold text-slate-300" title="Votos">

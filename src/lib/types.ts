@@ -48,6 +48,7 @@ export interface Project {
   ownerId: string;
   ownerName: string | null;
   ownerAvatar: string | null;
+  ownerIsSupporter?: boolean;
   status: "pending" | "approved" | "refused";
   votes: number;
   addedAt: string;

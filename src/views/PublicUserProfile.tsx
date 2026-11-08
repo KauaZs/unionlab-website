@@ -10,6 +10,7 @@ import { Input } from "../components/ui/input";
 import ReCaptcha from "../components/ReCaptcha";
 import { parseJson } from "@/lib/api";
 import ProfileProjects from "@/components/ProfileProjects";
+import SupporterBadge from "@/components/SupporterBadge";
 
 interface Streak {
   type: string;
@@ -48,6 +49,7 @@ interface UserProfileData {
   avatar: string | null;
   unicoins: number;
   bannerUrl: string | null;
+  isSupporter?: boolean;
   aboutme?: string;
   streaks: Streak[];
   badges: UserBadge[];
@@ -244,7 +246,10 @@ export default function PublicUserProfile({ userId, currentUser, showToast, show
             alt={data.username}
           />
           <div className="flex-1 space-y-2 text-center md:text-left pt-2 md:pt-0">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-white font-sans">{data.username}</h2>
+            <h2 className="flex items-center justify-center gap-2.5 text-2xl md:text-3xl md:justify-start font-extrabold text-white font-sans">
+              {data.username}
+              {data.isSupporter && <SupporterBadge className="px-2 py-1 text-[10px]" />}
+            </h2>
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
               <Badge variant="default" className="flex items-center gap-1 bg-amber-500/10 border-amber-500/20 text-amber-400">
                 <Coins className="w-3.5 h-3.5 text-amber-500" />

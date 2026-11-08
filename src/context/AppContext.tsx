@@ -35,6 +35,7 @@ interface CelebrationData {
   subtitle: string;
   rewardText: string;
   streakText?: string;
+  bonusText?: string;
 }
 
 interface AppContextType {
@@ -44,7 +45,7 @@ interface AppContextType {
   setAuthToken: (token: string | null) => void;
   refreshUser: () => void;
   showToast: (message: string, type?: "success" | "error" | "info") => void;
-  showCelebration: (title: string, subtitle: string, rewardText: string, streakText?: string) => void;
+  showCelebration: (title: string, subtitle: string, rewardText: string, streakText?: string, bonusText?: string) => void;
   recaptchaSiteKey: string | null;
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -64,13 +65,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Celebration Modal State
   const [celebration, setCelebration] = useState<CelebrationData | null>(null);
 
-  const showCelebration = (title: string, subtitle: string, rewardText: string, streakText?: string) => {
+  const showCelebration = (title: string, subtitle: string, rewardText: string, streakText?: string, bonusText?: string) => {
     setCelebration({
       isOpen: true,
       title,
       subtitle,
       rewardText,
       streakText,
+      bonusText,
     });
   };
 
@@ -218,6 +220,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             subtitle={celebration.subtitle}
             rewardText={celebration.rewardText}
             streakText={celebration.streakText}
+            bonusText={celebration.bonusText}
             onClose={() => setCelebration(null)}
           />
         )}

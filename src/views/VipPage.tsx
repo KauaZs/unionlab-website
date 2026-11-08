@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { parseJson } from "@/lib/api";
+import SupportersWall from "@/components/SupportersWall";
 
 interface VipStatus {
   active: boolean;
@@ -115,7 +116,7 @@ export default function VipPage({ user, onUpdateUser, showToast }: VipPageProps)
             <div className="space-y-1">
               <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Sua Assinatura</span>
               <div className="flex items-center gap-1.5">
-                <Badge variant="default" className={status.vipType === 1 ? "bg-amber-500/10 border-amber-500/20 text-amber-400 font-extrabold" : "bg-white text-black font-extrabold"}>
+                <Badge variant="default" className={status.vipType === 1 ? "bg-blue-500/10 border-blue-500/25 text-sky-300 font-extrabold" : "bg-white text-black font-extrabold"}>
                   {status.vipType === 1 ? "UNION+" : "VIP"}
                 </Badge>
               </div>
@@ -197,14 +198,14 @@ export default function VipPage({ user, onUpdateUser, showToast }: VipPageProps)
         </Card>
 
         {/* Card 2: UNION+ */}
-        <Card className="border border-slate-900 bg-slate-950/20 flex flex-col justify-between overflow-hidden relative">
+        <Card id="union-plus" className="scroll-mt-28 border border-slate-900 bg-slate-950/20 flex flex-col justify-between overflow-hidden relative">
           {/* Subtle gradient border to show it is premium */}
-          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500"></div>
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 via-sky-300 to-blue-500"></div>
           
           <div>
             <CardHeader className="p-8 pb-4">
               <div className="flex justify-between items-center">
-                <Badge variant="default" className="bg-amber-500/10 border-amber-500/20 text-amber-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1">
+                <Badge variant="default" className="bg-blue-500/10 border-blue-500/25 text-sky-300 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />
                   Premium Máximo
                 </Badge>
@@ -236,7 +237,7 @@ export default function VipPage({ user, onUpdateUser, showToast }: VipPageProps)
                   "Cargo Exclusivo UNION+ e cores personalizadas 🏅",
                 ].map((perk, idx) => (
                   <div key={idx} className="flex items-start gap-2 text-xs text-slate-300 font-semibold leading-relaxed">
-                    <Check className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <Check className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
                     <span>{perk}</span>
                   </div>
                 ))}
@@ -272,6 +273,8 @@ export default function VipPage({ user, onUpdateUser, showToast }: VipPageProps)
         </Card>
 
       </div>
+
+      <SupportersWall />
     </div>
   );
 }

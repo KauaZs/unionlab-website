@@ -10,6 +10,8 @@ import { Input } from "../components/ui/input";
 import { startLogin } from "@/lib/api";
 import ProfileProjects from "@/components/ProfileProjects";
 import { useApp } from "@/context/AppContext";
+import SupporterBadge from "@/components/SupporterBadge";
+import SupporterVisibility from "@/components/SupporterVisibility";
 
 interface User {
   id: string;
@@ -47,6 +49,7 @@ interface UserBot {
 
 interface FullUserData {
   bannerUrl: string | null;
+  isSupporter?: boolean;
   aboutme?: string;
   streaks: Streak[];
   badges: UserBadge[];
@@ -192,7 +195,10 @@ export default function UserProfile({ user, onLogout, showToast }: UserProfilePr
             alt={user.username}
           />
           <div className="flex-1 space-y-2 text-center md:text-left pt-2 md:pt-0">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-white font-sans">{user.username}</h2>
+            <h2 className="flex items-center justify-center gap-2.5 text-2xl md:text-3xl md:justify-start font-extrabold text-white font-sans">
+              {user.username}
+              {data?.isSupporter && <SupporterBadge className="px-2 py-1 text-[10px]" />}
+            </h2>
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
               <Badge variant="default" className="flex items-center gap-1">
                 <Coins className="w-3.5 h-3.5 text-amber-500" />
@@ -386,6 +392,7 @@ export default function UserProfile({ user, onLogout, showToast }: UserProfilePr
           </Card>
 
           {/* Projects (sites, games, music) */}
+          {authToken && <SupporterVisibility authToken={authToken} showToast={showToast} />}
           {authToken && <ProfileProjects mode="own" authToken={authToken} />}
 
           {/* Integration & Settings Cards */}

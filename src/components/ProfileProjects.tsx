@@ -7,6 +7,7 @@ import { fetchJson } from "@/lib/api";
 import { PROJECT_TYPE_BY_ID, projectGradient } from "@/lib/projectTypes";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/lib/types";
+import DeleteProjectButton from "@/components/DeleteProjectButton";
 
 const STATUS = {
   pending: { label: "Em análise", icon: Clock, className: "border-amber-500/25 bg-amber-500/10 text-amber-300" },
@@ -113,6 +114,14 @@ export default function ProfileProjects(props: ProfileProjectsProps) {
                       <Pencil className="h-3 w-3" />
                       {p.status === "refused" ? "Corrigir" : "Editar"}
                     </Link>
+                  )}
+                  {own && (
+                    <DeleteProjectButton
+                      compact
+                      projectId={p.id}
+                      projectTitle={p.title}
+                      onDeleted={() => setProjects((list) => (list ?? []).filter((x) => x.id !== p.id))}
+                    />
                   )}
                 </div>
                 {own && p.status === "refused" && p.refusedReason && (

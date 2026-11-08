@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bot, Plus, X, PlayCircle, Send, CheckCircle2, LogIn, ArrowRight } from "lucide-react";
+import { Bot, Plus, X, PlayCircle, Send, CheckCircle2, LogIn, ArrowRight, Lock } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import Markdown from "@/components/Markdown";
 import ProjectCard from "@/components/ProjectCard";
@@ -12,6 +12,7 @@ import { startLogin } from "@/lib/api";
 import { PROJECT_TYPES, PROJECT_TYPE_BY_ID, embedUrlFor } from "@/lib/projectTypes";
 import { cn } from "@/lib/utils";
 import type { Project, ProjectLink, ProjectType } from "@/lib/types";
+import DeleteProjectButton from "@/components/DeleteProjectButton";
 
 const LIMITS = { title: 60, summary: 140, description: 4000, tags: 8, tag: 20, links: 5, screenshots: 6 };
 
@@ -196,11 +197,25 @@ export default function PublishProject({ initialType, editing }: PublishProjectP
         )}
       </div>
 
-      {/* Type picker */}
+      {/* Type: fixed once published, chosen only when creating */}
+      {editing && info ? (
+        <section className="space-y-3">
+          <span className={labelClass}>Tipo do projeto</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className={cn("flex items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-extrabold", info.bg, info.border, info.text)}>
+              <info.icon className="h-4 w-4" />
+              {info.label}
+            </span>
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+              <Lock className="h-3.5 w-3.5" />
+              O tipo não pode ser alterado depois da publicação.
+            </span>
+          </div>
+        </section>
+      ) : (
       <section className="space-y-3">
         <span className={labelClass}>O que você quer publicar?</span>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-          {!editing && (
           <Link
             href="/addbot"
             className="flex flex-col items-center gap-2 rounded-2xl border border-slate-900 bg-zinc-950/60 p-4 text-center text-slate-300 transition-colors hover:border-slate-700 hover:text-white"
@@ -213,7 +228,6 @@ export default function PublishProject({ initialType, editing }: PublishProjectP
               Outro formulário <ArrowRight className="h-3 w-3" />
             </span>
           </Link>
-          )}
           {PROJECT_TYPES.map((t) => {
             const Icon = t.icon;
             const active = type === t.id;
@@ -236,6 +250,7 @@ export default function PublishProject({ initialType, editing }: PublishProjectP
           })}
         </div>
       </section>
+      )}
 
       {info && (
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
@@ -433,6 +448,12 @@ export default function PublishProject({ initialType, editing }: PublishProjectP
                       ? "Salvar e reenviar"
                       : "Salvar alterações"}
               </button>
+              {editing && (
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-red-500/15 bg-red-500/[0.03] p-3">
+                  <p className="text-xs font-medium text-slate-500">Não quer mais este projeto no site?</p>
+                  <DeleteProjectButton projectId={editing.id} projectTitle={editing.title} onDeleted={() => router.push("/profile")} />
+                </div>
+              )}
             </div>
           </form>
 
