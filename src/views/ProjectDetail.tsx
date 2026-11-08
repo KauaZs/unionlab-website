@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, ExternalLink, Flame, Link2, Calendar, Clock, XCircle, Share2, Pencil,
+  ArrowLeft, ExternalLink, Flame, Link2, Calendar, Clock, XCircle, Share2, Star, Pencil,
 } from "lucide-react";
 import Markdown from "@/components/Markdown";
 import ImageGallery from "@/components/ImageGallery";
@@ -19,6 +19,7 @@ import type { Project, ProjectType } from "@/lib/types";
 import SupporterBadge from "@/components/SupporterBadge";
 import DeleteProjectButton from "@/components/DeleteProjectButton";
 import { voteBonusText } from "@/lib/votes";
+import ProjectReviews from "@/components/ProjectReviews";
 
 const OPEN_LABEL: Record<ProjectType, string> = {
   website: "Visitar site",
@@ -174,6 +175,13 @@ export default function ProjectDetail({ id }: { id: string }) {
               <Flame className="h-3.5 w-3.5 text-orange-500" />
               {project.votes} votos
             </span>
+            {!!project.feedbackCount && (
+              <span className="flex items-center gap-1.5 text-amber-400">
+                <Star className="h-3.5 w-3.5 fill-amber-400" />
+                {project.rating!.toFixed(1)}
+                <span className="text-slate-500">({project.feedbackCount})</span>
+              </span>
+            )}
           </div>
           {project.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 pt-1">
@@ -215,6 +223,8 @@ export default function ProjectDetail({ id }: { id: string }) {
               {project.description ? <Markdown>{project.description}</Markdown> : <p className="text-slate-500">{project.summary}</p>}
             </div>
           </section>
+
+          {project.status === "approved" && <ProjectReviews projectId={project.id} onChanged={load} />}
         </div>
 
         {/* Sidebar */}

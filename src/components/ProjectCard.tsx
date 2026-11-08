@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Flame, ExternalLink } from "lucide-react";
+import { Flame, ExternalLink, Star } from "lucide-react";
 import type { Project } from "@/lib/types";
 import { PROJECT_TYPE_BY_ID, hostOf, projectGradient } from "@/lib/projectTypes";
 import { isRecent } from "@/lib/dates";
@@ -101,6 +101,12 @@ export default function ProjectCard({ project, rank }: ProjectCardProps) {
             {project.ownerIsSupporter && <SupporterBadge />}
           </div>
           <div className="flex shrink-0 items-center gap-3">
+            {!!project.feedbackCount && (
+              <span className="flex items-center gap-1 text-xs font-bold text-amber-400" title={`${project.feedbackCount} avaliações`}>
+                <Star className="h-3.5 w-3.5 fill-amber-400" />
+                {project.rating!.toFixed(1)}
+              </span>
+            )}
             <span className="flex items-center gap-1 text-xs font-bold text-slate-300" title="Votos">
               <Flame className="h-3.5 w-3.5 fill-orange-500/20 text-orange-500" />
               {project.votes}

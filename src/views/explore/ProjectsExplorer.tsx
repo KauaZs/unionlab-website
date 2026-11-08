@@ -2,17 +2,18 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Trophy, Clock, Plus } from "lucide-react";
+import { Trophy, Clock, Plus, Sparkles } from "lucide-react";
 import ProjectCard from "@/components/ProjectCard";
 import { PROJECT_TYPE_BY_ID } from "@/lib/projectTypes";
 import { cn } from "@/lib/utils";
 import type { Project, ProjectType } from "@/lib/types";
 import { GridState, SortTabs, matchesSearch, normalize, type SortOption } from "./shared";
 
-type ProjectSort = "popular" | "recent";
+type ProjectSort = "popular" | "rated" | "recent";
 
 const SORTS: SortOption<ProjectSort>[] = [
   { id: "popular", label: "Mais votados", icon: Trophy },
+  { id: "rated", label: "Melhor avaliados", icon: Sparkles },
   { id: "recent", label: "Recentes", icon: Clock },
 ];
 
@@ -63,7 +64,11 @@ export default function ProjectsExplorer({ type, projects, loading, error, onRet
     const q = normalize(search);
     return ofType
       .filter((p) => (!tag || p.tags.some((t) => normalize(t) === tag)) && matchesSearch(q, [p.title, p.summary, p.ownerName, ...p.tags]))
-      .sort((a, b) => (sort === "popular" ? b.votes - a.votes : new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime()));
+      .sort((a, b) => {
+        if (sort === "popular") return b.votes - a.votes;
+        if (sort === "rated") return (b.rating || 0) - (a.rating || 0) || (b.feedbackCount || 0) - (a.feedbackCount || 0);
+        return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime();
+      });
   }, [ofType, search, tag, sort]);
 
   return (

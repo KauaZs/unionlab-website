@@ -51,6 +51,9 @@ export interface Project {
   ownerIsSupporter?: boolean;
   status: "pending" | "approved" | "refused";
   votes: number;
+  /** Average of the reviews; 0 when there are none. */
+  rating?: number;
+  feedbackCount?: number;
   addedAt: string;
   /** Only on /projects/mine. */
   refusedReason?: string | null;

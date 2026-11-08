@@ -83,7 +83,7 @@ export default function DeleteProjectButton({ projectId, projectTitle, onDeleted
                 Remover &quot;{projectTitle}&quot;?
               </h2>
               <p className="mt-1.5 text-sm leading-relaxed text-slate-400">
-                O projeto, os votos dele e o anúncio no Discord serão apagados. Isso não pode ser desfeito.
+                O projeto, os votos, as avaliações e o anúncio no Discord serão apagados. Isso não pode ser desfeito.
               </p>
               <div className="mt-6 flex justify-end gap-2">
                 <button
